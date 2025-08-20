@@ -1,0 +1,61 @@
+# https://taskfile.dev
+
+version: '3'
+
+vars:
+  GOPROXY: 'https://goproxy.cn,direct'
+  GOSUMDB: sum.golang.google.cn
+
+tasks:
+
+  gencopyright:
+    desc: generate code license
+    cmds:
+      - command -v addlicense || go install github.com/google/addlicense@latest
+      - ./gencopyright.sh
+
+  gofmt:
+    cmds:
+      - go install golang.org/x/tools/cmd/goimports@latest
+      - gofmt -s -w .
+      - goimports -w .
+
+  govulncheck:
+    desc: vulnerability detection
+    cmds:
+      - command -v govulncheck ||go install golang.org/x/vuln/cmd/govulncheck@v1.1.1
+      - govulncheck ./...
+
+  golint:
+    cmds:
+      - command -v golangci-lint || go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.57.2
+      - golangci-lint run -v ./...
+
+  gci:
+    cmds:
+      - command -v gci || go install github.com/daixiang0/gci@v0.13.1
+      - gci write --skip-generated --custom-order -s standard -s "prefix(github.com/ysicing/go-gitness)" -s default -s blank -s dot .
+
+  gomod:
+    cmds:
+      - go mod tidy
+
+  lint:
+    desc: lint code
+    cmds:
+      - task: fmt
+      - task: golint
+
+  fmt:
+    desc: format code
+    run: once
+    cmds:
+      - task: gencopyright
+      - task: gomod
+      - task: gofmt
+      - task: gci
+      - task: govulncheck
+
+  default:
+    cmds:
+      - task: fmt

@@ -4,29 +4,29 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/ysicing/go-gitness)](https://goreportcard.com/report/github.com/ysicing/go-gitness)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-**语言版本**: [English](README-EN.md) | [中文](README.md)
+**Languages**: [English](README-EN.md) | [中文](README.md)
 
-一个用于访问 [Gitness](https://gitness.com) API 的全面 Go 客户端库。这个库提供了完整的 Go SDK 来与 Gitness 服务交互，采用了 go-gitlab 的设计模式，并通过分析官方 Gitness OpenAPI 规范进行了增强。
+A comprehensive Go client library for accessing the [Gitness](https://gitness.com) API. This library provides a complete Go SDK for interacting with Gitness services, inspired by the design patterns of go-gitlab and enhanced with analysis of the official Gitness OpenAPI specifications.
 
-## 特性
+## Features
 
-- **完整 API 覆盖**：支持所有主要的 Gitness API 端点，包括 Pull Requests、Checks、Templates 等
-- **类型安全**：为所有 API 实体提供完整的 Go 类型定义，正确处理空值
-- **Context 支持**：内置 context 支持，用于请求取消和超时
-- **灵活配置**：可自定义 HTTP 客户端、超时和基础 URL
-- **错误处理**：结构化错误响应，包含详细信息
-- **模块化设计**：面向服务的架构，代码组织清晰
-- **生产就绪**：全面测试和示例用法
+- **Complete API Coverage**: Support for all major Gitness API endpoints including Pull Requests, Checks, Templates, and more
+- **Type Safe**: Full Go type definitions for all API entities with proper null handling
+- **Context Support**: Built-in context support for request cancellation and timeouts
+- **Flexible Configuration**: Customizable HTTP clients, timeouts, and base URLs
+- **Error Handling**: Structured error responses with detailed information
+- **Modular Design**: Service-oriented architecture for clean code organization
+- **Production Ready**: Comprehensive testing and example usage
 
-## 安装
+## Installation
 
 ```bash
 go get github.com/ysicing/go-gitness
 ```
 
-## 快速开始
+## Quick Start
 
-### 基础用法
+### Basic Usage
 
 ```go
 package main
@@ -40,13 +40,13 @@ import (
 )
 
 func main() {
-    // 创建新的 Gitness 客户端
+    // Create a new Gitness client
     client, err := gitness.NewClient("your-api-token")
     if err != nil {
         log.Fatal(err)
     }
 
-    // 获取当前用户
+    // Get current user
     user, _, err := client.Users.GetCurrentUser(context.Background())
     if err != nil {
         log.Fatal(err)
@@ -56,7 +56,7 @@ func main() {
 }
 ```
 
-### 自定义配置
+### Custom Configuration
 
 ```go
 client, err := gitness.NewClient("your-api-token",
@@ -66,12 +66,12 @@ client, err := gitness.NewClient("your-api-token",
 )
 ```
 
-## API 参考
+## API Reference
 
-### Pull Request 管理
+### Pull Request Management
 
 ```go
-// 列出 pull request
+// List pull requests
 prs, _, err := client.PullRequests.ListPullRequests(ctx, "my-space/my-repo", &gitness.ListPullRequestsOptions{
     State: gitness.Ptr("open"),
     ListOptions: gitness.ListOptions{
@@ -80,7 +80,7 @@ prs, _, err := client.PullRequests.ListPullRequests(ctx, "my-space/my-repo", &gi
     },
 })
 
-// 创建 pull request
+// Create a pull request
 pr, _, err := client.PullRequests.CreatePullRequest(ctx, "my-space/my-repo", &gitness.CreatePullRequestOptions{
     Title:        gitness.Ptr("Fix: Update documentation"),
     Description:  gitness.Ptr("This PR updates the README with latest information"),
@@ -89,23 +89,23 @@ pr, _, err := client.PullRequests.CreatePullRequest(ctx, "my-space/my-repo", &gi
     IsDraft:      gitness.Ptr(false),
 })
 
-// 合并 pull request
+// Merge a pull request
 mergedPR, _, err := client.PullRequests.MergePullRequest(ctx, "my-space/my-repo", 123, &gitness.MergePullRequestOptions{
     Method:        gitness.Ptr("merge"),
     CommitMessage: gitness.Ptr("Merge PR: Fix documentation"),
 })
 
-// 添加审查者
+// Add reviewer
 _, err = client.PullRequests.AddPullRequestReviewer(ctx, "my-space/my-repo", 123, "reviewer-uid")
 
-// 列出 PR 活动/评论
+// List PR activities/comments
 activities, _, err := client.PullRequests.ListPullRequestActivity(ctx, "my-space/my-repo", 123, nil)
 ```
 
-### 仓库操作
+### Repository Operations
 
 ```go
-// 创建具有高级选项的仓库
+// Create repository with advanced options
 repo, _, err := client.Repositories.CreateRepository(ctx, "my-space", &gitness.CreateRepositoryOptions{
     Identifier:    gitness.Ptr("my-repo"),
     Description:   gitness.Ptr("My awesome repository"),
@@ -116,7 +116,7 @@ repo, _, err := client.Repositories.CreateRepository(ctx, "my-space", &gitness.C
     Readme:        gitness.Ptr(true),
 })
 
-// 从外部仓库导入
+// Import from external repository
 importedRepo, _, err := client.Repositories.ImportRepository(ctx, "my-space", &gitness.ImportRepositoryOptions{
     CloneURL: gitness.Ptr("https://github.com/user/repo.git"),
     Username: gitness.Ptr("your-username"),
@@ -124,32 +124,32 @@ importedRepo, _, err := client.Repositories.ImportRepository(ctx, "my-space", &g
     Provider: gitness.Ptr("github"),
 })
 
-// 分支管理
+// Branch management
 branch, _, err := client.Repositories.CreateBranch(ctx, "my-space/my-repo", &gitness.CreateBranchOptions{
     Name:   gitness.Ptr("feature/new-feature"),
     Target: gitness.Ptr("main"),
 })
 
-// 使用过滤器列出提交
+// List commits with filtering
 commits, _, err := client.Repositories.ListCommits(ctx, "my-space/my-repo", &gitness.ListCommitsOptions{
     GitRef: gitness.Ptr("main"),
-    Since:  gitness.Ptr(gitness.Time(time.Now().AddDate(0, 0, -7))), // 最近 7 天
+    Since:  gitness.Ptr(gitness.Time(time.Now().AddDate(0, 0, -7))), // Last 7 days
     ListOptions: gitness.ListOptions{
         Limit: gitness.Ptr(50),
     },
 })
 
-// 获取文件内容
+// Get file content
 fileContent, _, err := client.Repositories.GetFileContent(ctx, "my-space/my-repo", "README.md", &gitness.GetFileOptions{
     Ref: gitness.Ptr("main"),
     IncludeCommit: gitness.Ptr(true),
 })
 ```
 
-### CI/CD 检查
+### CI/CD Checks
 
 ```go
-// 为提交创建检查
+// Create a check for a commit
 check, _, err := client.Checks.CreateCheck(ctx, "my-space/my-repo", "commit-sha", &gitness.CreateCheckOptions{
     Identifier: gitness.Ptr("ci/build"),
     Status:     gitness.Ptr("running"),
@@ -157,22 +157,22 @@ check, _, err := client.Checks.CreateCheck(ctx, "my-space/my-repo", "commit-sha"
     Summary:    gitness.Ptr("Building application..."),
 })
 
-// 更新检查状态
+// Update check status
 updatedCheck, _, err := client.Checks.UpdateCheck(ctx, "my-space/my-repo", "commit-sha", "ci/build", &gitness.UpdateCheckOptions{
     Status:  gitness.Ptr("success"),
     Summary: gitness.Ptr("Build completed successfully"),
 })
 
-// 列出提交的所有检查
+// List all checks for a commit
 checks, _, err := client.Checks.ListChecks(ctx, "my-space/my-repo", "commit-sha", &gitness.ListChecksOptions{
     Latest: gitness.Ptr(true),
 })
 ```
 
-### 模板管理
+### Template Management
 
 ```go
-// 创建 pipeline 模板
+// Create a pipeline template
 template, _, err := client.Templates.CreateTemplate(ctx, "my-space", &gitness.CreateTemplateOptions{
     Identifier:  gitness.Ptr("node-ci"),
     Description: gitness.Ptr("Node.js CI pipeline template"),
@@ -180,17 +180,17 @@ template, _, err := client.Templates.CreateTemplate(ctx, "my-space", &gitness.Cr
     Data:        gitness.Ptr(pipelineYAML),
 })
 
-// 列出模板
+// List templates
 templates, _, err := client.Templates.ListTemplates(ctx, "my-space", nil)
 
-// 获取特定模板
+// Get specific template
 template, _, err := client.Templates.GetTemplate(ctx, "my-space", "node-ci")
 ```
 
-### 高级空间管理
+### Advanced Space Management
 
 ```go
-// 创建嵌套空间
+// Create nested spaces
 space, _, err := client.Spaces.CreateSpace(ctx, &gitness.CreateSpaceOptions{
     Identifier:  gitness.Ptr("team-frontend"),
     ParentRef:   gitness.Ptr("my-organization"),
@@ -198,7 +198,7 @@ space, _, err := client.Spaces.CreateSpace(ctx, &gitness.CreateSpaceOptions{
     IsPublic:    gitness.Ptr(false),
 })
 
-// 使用递归列出空间中的仓库
+// List repositories in space with recursion
 repos, _, err := client.Spaces.ListRepositories(ctx, "my-space", &gitness.ListRepositoriesOptions{
     Recursive: gitness.Ptr(true),
     ListOptions: gitness.ListOptions{
@@ -208,35 +208,35 @@ repos, _, err := client.Spaces.ListRepositories(ctx, "my-space", &gitness.ListRe
 })
 ```
 
-## 完整服务架构
+## Complete Service Architecture
 
-SDK 通过专门的服务模块提供对 Gitness API 的全面覆盖：
+The SDK provides comprehensive coverage of Gitness APIs through specialized service modules:
 
-### 核心服务
-- **Admin**：管理操作和用户管理
-- **Audit**：审计日志管理和合规追踪
-- **Spaces**：工作空间和组织管理
-- **Users**：用户档案和身份验证管理
+### Core Services
+- **Admin**: Administrative operations and user management
+- **Audit**: Audit log management and compliance tracking
+- **Spaces**: Workspace and organization management
+- **Users**: User profile and authentication management
 
-### 仓库服务
-- **Repositories**：Git 仓库管理、分支、提交、文件操作
-- **PullRequests**：Pull request 生命周期、审查、合并、评论
-- **Checks**：CI/CD 状态检查和构建报告
+### Repository Services  
+- **Repositories**: Git repository management, branches, commits, file operations
+- **PullRequests**: Pull request lifecycle, reviews, merging, comments
+- **Checks**: CI/CD status checks and build reporting
 
-### DevOps 服务
-- **Pipelines**：CI/CD pipeline 操作和执行
-- **Secrets**：密钥和凭证管理
-- **Webhooks**：事件通知管理
-- **Templates**：可重用的 pipeline 和配置模板
+### DevOps Services
+- **Pipelines**: CI/CD pipeline operations and execution
+- **Secrets**: Secret and credential management
+- **Webhooks**: Event notification management
+- **Templates**: Reusable pipeline and configuration templates
 
-### 基础设施服务
-- **Connectors**：外部服务集成（GitHub、GitLab 等）
-- **Gitspaces**：开发环境管理
-- **InfraProviders**：基础设施提供商配置
+### Infrastructure Services
+- **Connectors**: External service integrations (GitHub, GitLab, etc.)
+- **Gitspaces**: Development environment management
+- **InfraProviders**: Infrastructure provider configuration
 
-## 错误处理
+## Error Handling
 
-SDK 提供全面的错误处理，包含详细信息：
+The SDK provides comprehensive error handling with detailed information:
 
 ```go
 repo, _, err := client.Repositories.GetRepository(ctx, "nonexistent/repo")
@@ -252,9 +252,9 @@ if err != nil {
 }
 ```
 
-## 分页和过滤
+## Pagination and Filtering
 
-大多数列表操作都支持高级分页和过滤：
+Most list operations support advanced pagination and filtering:
 
 ```go
 options := &gitness.ListPullRequestsOptions{
@@ -263,7 +263,7 @@ options := &gitness.ListPullRequestsOptions{
     CreatedBy:    gitness.Ptr(int64(123)),
     ListOptions: gitness.ListOptions{
         Page:  gitness.Ptr(2),
-        Limit: gitness.Ptr(50), // 注意：Gitness 使用 'limit' 而不是 'per_page'
+        Limit: gitness.Ptr(50), // Note: Gitness uses 'limit' not 'per_page'
         Sort:  gitness.Ptr("created"),
         Order: gitness.Ptr("desc"),
         Query: gitness.Ptr("bug fix"),
@@ -271,7 +271,7 @@ options := &gitness.ListPullRequestsOptions{
 }
 prs, resp, err := client.PullRequests.ListPullRequests(ctx, "my-space/my-repo", options)
 
-// 从响应头获取分页信息
+// Access pagination information from response headers
 if resp.Total != nil {
     fmt.Printf("Total PRs: %d\n", *resp.Total)
 }
@@ -283,24 +283,24 @@ if resp.NextPage != nil {
 }
 ```
 
-## 分页支持
+## Pagination Support
 
-此 SDK 通过响应头完全支持 Gitness API 分页。Gitness API 在以下头部返回分页信息：
+This SDK fully supports Gitness API pagination through response headers. The Gitness API returns pagination information in the following headers:
 
-- `x-page`：当前页码
-- `x-per-page`：每页项目数
-- `x-next-page`：下一页码（如果可用）
-- `x-total`：总项目数
-- `x-total-pages`：总页数
+- `x-page`: Current page number  
+- `x-per-page`: Items per page
+- `x-next-page`: Next page number (if available)
+- `x-total`: Total number of items
+- `x-total-pages`: Total number of pages
 
-### 分页示例
+### Pagination Example
 
 ```go
-// 使用分页列出用户
+// List users with pagination
 users, resp, err := client.Admin.ListUsers(ctx, &gitness.ListUsersOptions{
     ListOptions: gitness.ListOptions{
         Page:  gitness.Ptr(1),
-        Limit: gitness.Ptr(2), // 注意：使用 'Limit' 而不是 'PerPage'
+        Limit: gitness.Ptr(2), // Note: Use 'Limit' not 'PerPage'
     },
 })
 
@@ -311,13 +311,13 @@ if err != nil {
 fmt.Printf("Page %d of %d\n", *resp.Page, *resp.TotalPages)
 fmt.Printf("Showing %d users out of %d total\n", len(users), *resp.Total)
 
-// 检查是否有下一页
+// Check if there's a next page
 if resp.NextPage != nil {
     fmt.Printf("Next page available: %d\n", *resp.NextPage)
 }
 ```
 
-### 遍历所有页面
+### Walking Through All Pages
 
 ```go
 page := 1
@@ -333,62 +333,62 @@ for {
         break
     }
     
-    // 处理用户...
+    // Process users...
     for _, user := range users {
         fmt.Printf("User: %s\n", *user.DisplayName)
     }
     
-    // 检查是否有下一页
+    // Check if there's a next page
     if resp.NextPage == nil {
-        break // 没有更多页面
+        break // No more pages
     }
     
     page = *resp.NextPage
 }
 ```
 
-## 示例
+## Examples
 
-查看全面的示例：
+Check out the comprehensive examples:
 
-- **基础用法**：`examples/basic/main.go` - 简单操作
-- **高级功能**：`examples/advanced/main.go` - 复杂工作流，包含 Pull Requests、CI/CD 等
-- **分页演示**：`examples/pagination/main.go` - 演示使用 Admin Users API 的分页
+- **Basic Usage**: `examples/basic/main.go` - Simple operations  
+- **Advanced Features**: `examples/advanced/main.go` - Complex workflows with Pull Requests, CI/CD, and more
+- **Pagination Demo**: `examples/pagination/main.go` - Demonstrates pagination with Admin Users API
 
-## 测试
+## Testing
 
-运行完整的测试套件：
+Run the complete test suite:
 
 ```bash
 go test ./...
 ```
 
-运行带覆盖率的测试：
+Run tests with coverage:
 
 ```bash
 go test -v -cover ./...
 ```
 
-构建示例：
+Build examples:
 
 ```bash
 cd examples/basic && go build
 cd examples/advanced && go build
 ```
 
-## 贡献
+## Contributing
 
-1. Fork 仓库
-2. 创建你的功能分支（`git checkout -b feature/amazing-feature`）
-3. 提交你的更改（`git commit -m 'Add some amazing feature'`）
-4. 推送到分支（`git push origin feature/amazing-feature`）
-5. 打开一个 Pull Request
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## 许可证
+## License
 
-本项目采用 Apache License 2.0 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
 
-## 致谢
+## Acknowledgments
 
-- 为 [Gitness](https://gitness.com) 开源 DevOps 平台构建
-- 通过分析官方 Gitness OpenAPI 规范进行增强
+- Built for the [Gitness](https://gitness.com) open-source DevOps platform
+- Enhanced through analysis of official Gitness OpenAPI specifications
