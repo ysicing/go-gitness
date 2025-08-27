@@ -35,6 +35,7 @@ type Client struct {
 	Audit          *AuditService
 	Auth           *AuthService
 	Checks         *ChecksService
+	CiCache        *CiCacheService
 	Connectors     *ConnectorsService
 	Gitspaces      *GitspacesService
 	InfraProviders *InfraProvidersService
@@ -89,6 +90,7 @@ func NewClient(token string, options ...ClientOptionFunc) (*Client, error) {
 	c.Audit = &AuditService{client: c}
 	c.Auth = &AuthService{client: c}
 	c.Checks = &ChecksService{client: c}
+	c.CiCache = &CiCacheService{client: c}
 	c.Connectors = &ConnectorsService{client: c}
 	c.Gitspaces = &GitspacesService{client: c}
 	c.InfraProviders = &InfraProvidersService{client: c}
@@ -185,7 +187,7 @@ func (e *ErrorResponse) Error() string {
 }
 
 // Get performs a GET request
-func (c *Client) Get(ctx context.Context, path string, result interface{}) (*Response, error) {
+func (c *Client) Get(ctx context.Context, path string, result any) (*Response, error) {
 	resp, err := c.client.R().
 		SetContext(ctx).
 		SetSuccessResult(result).
@@ -207,7 +209,7 @@ func (c *Client) Get(ctx context.Context, path string, result interface{}) (*Res
 }
 
 // Post performs a POST request
-func (c *Client) Post(ctx context.Context, path string, body interface{}, result interface{}) (*Response, error) {
+func (c *Client) Post(ctx context.Context, path string, body any, result any) (*Response, error) {
 	req := c.client.R().SetContext(ctx)
 
 	if body != nil {
@@ -231,7 +233,7 @@ func (c *Client) Post(ctx context.Context, path string, body interface{}, result
 }
 
 // Put performs a PUT request
-func (c *Client) Put(ctx context.Context, path string, body interface{}, result interface{}) (*Response, error) {
+func (c *Client) Put(ctx context.Context, path string, body any, result any) (*Response, error) {
 	req := c.client.R().SetContext(ctx)
 
 	if body != nil {
@@ -255,7 +257,7 @@ func (c *Client) Put(ctx context.Context, path string, body interface{}, result 
 }
 
 // Patch performs a PATCH request
-func (c *Client) Patch(ctx context.Context, path string, body interface{}, result interface{}) (*Response, error) {
+func (c *Client) Patch(ctx context.Context, path string, body any, result any) (*Response, error) {
 	req := c.client.R().SetContext(ctx)
 
 	if body != nil {
@@ -279,7 +281,7 @@ func (c *Client) Patch(ctx context.Context, path string, body interface{}, resul
 }
 
 // Delete performs a DELETE request
-func (c *Client) Delete(ctx context.Context, path string, body interface{}) (*Response, error) {
+func (c *Client) Delete(ctx context.Context, path string, body any) (*Response, error) {
 	req := c.client.R().SetContext(ctx)
 
 	if body != nil {
@@ -307,7 +309,7 @@ func (c *Client) checkResponse(r *req.Response) error {
 	errorResponse := &ErrorResponse{Response: r}
 
 	// Try to parse error from response body
-	var errorBody map[string]interface{}
+	var errorBody map[string]any
 	if err := json.Unmarshal(r.Bytes(), &errorBody); err == nil {
 		if message, ok := errorBody["message"].(string); ok {
 			errorResponse.Message = message
@@ -348,7 +350,7 @@ func buildQueryParams(req *req.Request, opt *ListOptions) {
 }
 
 // performListRequest is a helper function for making list requests with pagination support
-func (c *Client) performListRequest(ctx context.Context, path string, opt *ListOptions, result interface{}) (*Response, error) {
+func (c *Client) performListRequest(ctx context.Context, path string, opt *ListOptions, result any) (*Response, error) {
 	req := c.client.R().SetContext(ctx)
 	req.SetSuccessResult(result)
 

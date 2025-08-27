@@ -212,3 +212,109 @@ func (s *AdminService) UpdateUserBlockedStatus(ctx context.Context, userUID stri
 	}
 	return &user, resp, nil
 }
+
+// CreateUserRequest represents a request to create a new user
+type CreateUserRequest struct {
+	UID         *string `json:"uid,omitempty"`
+	Email       *string `json:"email,omitempty"`
+	DisplayName *string `json:"display_name,omitempty"`
+	Password    *string `json:"password,omitempty"`
+	Admin       *bool   `json:"admin,omitempty"`
+}
+
+// CreateUser creates a new user
+func (s *AdminService) CreateUser(ctx context.Context, user *CreateUserRequest) (*User, *Response, error) {
+	var newUser User
+	resp, err := s.client.Post(ctx, "admin/users", user, &newUser)
+	if err != nil {
+		return nil, resp, err
+	}
+	return &newUser, resp, nil
+}
+
+// UpdateUserRequest represents a request to update user information
+type UpdateUserRequest struct {
+	Email       *string `json:"email,omitempty"`
+	DisplayName *string `json:"display_name,omitempty"`
+}
+
+// UpdateUser updates user information
+func (s *AdminService) UpdateUser(ctx context.Context, userUID string, user *UpdateUserRequest) (*User, *Response, error) {
+	path := fmt.Sprintf("admin/users/%s", userUID)
+	var updatedUser User
+	resp, err := s.client.Patch(ctx, path, user, &updatedUser)
+	if err != nil {
+		return nil, resp, err
+	}
+	return &updatedUser, resp, nil
+}
+
+// DeleteUser deletes a user by UID
+func (s *AdminService) DeleteUser(ctx context.Context, userUID string) (*Response, error) {
+	path := fmt.Sprintf("admin/users/%s", userUID)
+	resp, err := s.client.Delete(ctx, path, nil)
+	return resp, err
+}
+
+// LDAPUser represents an LDAP user search result
+type LDAPUser struct {
+	UID         *string `json:"uid,omitempty"`
+	Email       *string `json:"email,omitempty"`
+	DisplayName *string `json:"display_name,omitempty"`
+}
+
+// SearchLDAPUsersOptions specifies the optional parameters for searching LDAP users
+type SearchLDAPUsersOptions struct {
+	ListOptions
+	Query *string `url:"query,omitempty"`
+}
+
+// SearchLDAPUsers searches for LDAP users
+func (s *AdminService) SearchLDAPUsers(ctx context.Context, opt *SearchLDAPUsersOptions) ([]*LDAPUser, *Response, error) {
+	req := s.client.client.R().SetContext(ctx)
+
+	if opt != nil {
+		buildQueryParams(req, &opt.ListOptions)
+		if opt.Query != nil {
+			req.SetQueryParam("query", *opt.Query)
+		}
+	}
+
+	var users []*LDAPUser
+	req.SetSuccessResult(&users)
+
+	resp, err := req.Get("admin/ldap/users")
+	if err != nil {
+		return nil, &Response{Response: resp}, err
+	}
+
+	if err := s.client.checkResponse(resp); err != nil {
+		return nil, &Response{Response: resp}, err
+	}
+
+	response := &Response{Response: resp}
+	s.client.parsePaginationHeaders(response)
+
+	return users, response, nil
+}
+
+// SyncLDAPUsersRequest represents a request to sync LDAP users
+type SyncLDAPUsersRequest struct {
+	UserUIDs []string `json:"user_uids,omitempty"`
+}
+
+// SyncLDAPUsersResponse represents the response from LDAP sync operation
+type SyncLDAPUsersResponse struct {
+	Synchronized *int `json:"synchronized,omitempty"`
+	Failed       *int `json:"failed,omitempty"`
+}
+
+// SyncLDAPUsers synchronizes LDAP users
+func (s *AdminService) SyncLDAPUsers(ctx context.Context, req *SyncLDAPUsersRequest) (*SyncLDAPUsersResponse, *Response, error) {
+	var syncResp SyncLDAPUsersResponse
+	resp, err := s.client.Post(ctx, "admin/ldap/users/sync", req, &syncResp)
+	if err != nil {
+		return nil, resp, err
+	}
+	return &syncResp, resp, nil
+}

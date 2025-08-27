@@ -29,7 +29,7 @@ type Check struct {
 	Ended      *Time                  `json:"ended,omitempty"`
 	Link       *string                `json:"link,omitempty"`
 	Summary    *string                `json:"summary,omitempty"`
-	Payload    map[string]interface{} `json:"payload,omitempty"`
+	Payload    map[string]any `json:"payload,omitempty"`
 	UID        *string                `json:"uid,omitempty"`
 }
 
@@ -41,7 +41,7 @@ type CreateCheckOptions struct {
 	Ended      *Time                  `json:"ended,omitempty"`
 	Link       *string                `json:"link,omitempty"`
 	Summary    *string                `json:"summary,omitempty"`
-	Payload    map[string]interface{} `json:"payload,omitempty"`
+	Payload    map[string]any `json:"payload,omitempty"`
 }
 
 // UpdateCheckOptions specifies options for updating a check
@@ -51,7 +51,7 @@ type UpdateCheckOptions struct {
 	Ended   *Time                  `json:"ended,omitempty"`
 	Link    *string                `json:"link,omitempty"`
 	Summary *string                `json:"summary,omitempty"`
-	Payload map[string]interface{} `json:"payload,omitempty"`
+	Payload map[string]any `json:"payload,omitempty"`
 }
 
 // ListChecksOptions specifies options for listing checks

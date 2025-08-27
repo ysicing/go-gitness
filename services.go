@@ -197,3 +197,268 @@ func (s *SecretsService) DeleteSecret(ctx context.Context, secretRef string) (*R
 	resp, err := s.client.Delete(ctx, path, nil)
 	return resp, err
 }
+
+// Gitspace represents a Gitness gitspace
+type Gitspace struct {
+	ID                *int64             `json:"id,omitempty"`
+	Identifier        *string            `json:"identifier,omitempty"`
+	Name              *string            `json:"name,omitempty"`
+	Description       *string            `json:"description,omitempty"`
+	SpaceID           *int64             `json:"space_id,omitempty"`
+	SpacePath         *string            `json:"space_path,omitempty"`
+	IDE               *GitspaceIDE       `json:"ide,omitempty"`
+	InfraProviderType *string            `json:"infra_provider_type,omitempty"`
+	ResourceType      *string            `json:"resource_type,omitempty"`
+	UserUID           *string            `json:"user_uid,omitempty"`
+	UserDisplayName   *string            `json:"user_display_name,omitempty"`
+	State             *GitspaceState     `json:"state,omitempty"`
+	URL               *string            `json:"url,omitempty"`
+	Created           *Time              `json:"created,omitempty"`
+	Updated           *Time              `json:"updated,omitempty"`
+	Accessed          *Time              `json:"accessed,omitempty"`
+	TotalTimeUsed     *int64             `json:"total_time_used,omitempty"`
+}
+
+// GitspaceIDE represents IDE configuration for a gitspace
+type GitspaceIDE string
+
+const (
+	GitspaceIDEVSCode         GitspaceIDE = "vscode"
+	GitspaceIDEVSCodeWeb      GitspaceIDE = "vscode-web" 
+	GitspaceIDEJetBrainsFleet GitspaceIDE = "jetbrains-fleet"
+)
+
+// GitspaceState represents the state of a gitspace
+type GitspaceState string
+
+const (
+	GitspaceStateUnspecified GitspaceState = "unspecified"
+	GitspaceStateRunning     GitspaceState = "running"
+	GitspaceStateStopped     GitspaceState = "stopped"
+	GitspaceStateError       GitspaceState = "error"
+	GitspaceStateUnknown     GitspaceState = "unknown"
+)
+
+// GitspaceAction represents an action to perform on a gitspace
+type GitspaceAction string
+
+const (
+	GitspaceActionStart GitspaceAction = "start"
+	GitspaceActionStop  GitspaceAction = "stop"
+)
+
+// ListGitspacesOptions specifies the optional parameters for listing gitspaces
+type ListGitspacesOptions struct {
+	ListOptions
+	SpaceRef *string `url:"space_ref,omitempty"`
+}
+
+// ListGitspaces lists gitspaces with optional filtering
+func (s *GitspacesService) ListGitspaces(ctx context.Context, opt *ListGitspacesOptions) ([]*Gitspace, *Response, error) {
+	req := s.client.client.R().SetContext(ctx)
+
+	if opt != nil {
+		buildQueryParams(req, &opt.ListOptions)
+		if opt.SpaceRef != nil {
+			req.SetQueryParam("space_ref", *opt.SpaceRef)
+		}
+	}
+
+	var gitspaces []*Gitspace
+	req.SetSuccessResult(&gitspaces)
+
+	resp, err := req.Get("gitspaces")
+	if err != nil {
+		return nil, &Response{Response: resp}, err
+	}
+
+	if err := s.client.checkResponse(resp); err != nil {
+		return nil, &Response{Response: resp}, err
+	}
+
+	response := &Response{Response: resp}
+	s.client.parsePaginationHeaders(response)
+
+	return gitspaces, response, nil
+}
+
+// CreateGitspaceRequest represents a request to create a new gitspace
+type CreateGitspaceRequest struct {
+	Identifier        *string     `json:"identifier,omitempty"`
+	Name              *string     `json:"name,omitempty"`
+	Description       *string     `json:"description,omitempty"`
+	SpaceRef          *string     `json:"space_ref,omitempty"`
+	IDE               GitspaceIDE `json:"ide,omitempty"`
+	InfraProviderType *string     `json:"infra_provider_type,omitempty"`
+	ResourceType      *string     `json:"resource_type,omitempty"`
+}
+
+// CreateGitspace creates a new gitspace
+func (s *GitspacesService) CreateGitspace(ctx context.Context, gitspace *CreateGitspaceRequest) (*Gitspace, *Response, error) {
+	var newGitspace Gitspace
+	resp, err := s.client.Post(ctx, "gitspaces", gitspace, &newGitspace)
+	if err != nil {
+		return nil, resp, err
+	}
+	return &newGitspace, resp, nil
+}
+
+// FindGitspace retrieves a specific gitspace by identifier
+func (s *GitspacesService) FindGitspace(ctx context.Context, identifier string) (*Gitspace, *Response, error) {
+	path := fmt.Sprintf("gitspaces/%s", identifier)
+	var gitspace Gitspace
+	resp, err := s.client.Get(ctx, path, &gitspace)
+	if err != nil {
+		return nil, resp, err
+	}
+	return &gitspace, resp, nil
+}
+
+// DeleteGitspace deletes a gitspace by identifier
+func (s *GitspacesService) DeleteGitspace(ctx context.Context, identifier string) (*Response, error) {
+	path := fmt.Sprintf("gitspaces/%s", identifier)
+	resp, err := s.client.Delete(ctx, path, nil)
+	return resp, err
+}
+
+// GitspaceActionRequest represents a request to perform an action on a gitspace
+type GitspaceActionRequest struct {
+	Action GitspaceAction `json:"action,omitempty"`
+}
+
+// ActionOnGitspace performs an action on a gitspace (start/stop)
+func (s *GitspacesService) ActionOnGitspace(ctx context.Context, identifier string, action GitspaceAction) (*Gitspace, *Response, error) {
+	path := fmt.Sprintf("gitspaces/%s/actions", identifier)
+	req := &GitspaceActionRequest{Action: action}
+
+	var gitspace Gitspace
+	resp, err := s.client.Post(ctx, path, req, &gitspace)
+	if err != nil {
+		return nil, resp, err
+	}
+	return &gitspace, resp, nil
+}
+
+// GitspaceEvent represents an event in gitspace lifecycle
+type GitspaceEvent struct {
+	ID        *int64  `json:"id,omitempty"`
+	Type      *string `json:"type,omitempty"`
+	Message   *string `json:"message,omitempty"`
+	Created   *Time   `json:"created,omitempty"`
+	Timestamp *Time   `json:"timestamp,omitempty"`
+}
+
+// ListGitspaceEventsOptions specifies the optional parameters for listing gitspace events
+type ListGitspaceEventsOptions struct {
+	ListOptions
+}
+
+// ListGitspaceEvents lists events for a specific gitspace
+func (s *GitspacesService) ListGitspaceEvents(ctx context.Context, identifier string, opt *ListGitspaceEventsOptions) ([]*GitspaceEvent, *Response, error) {
+	path := fmt.Sprintf("gitspaces/%s/events", identifier)
+	req := s.client.client.R().SetContext(ctx)
+
+	if opt != nil {
+		buildQueryParams(req, &opt.ListOptions)
+	}
+
+	var events []*GitspaceEvent
+	req.SetSuccessResult(&events)
+
+	resp, err := req.Get(path)
+	if err != nil {
+		return nil, &Response{Response: resp}, err
+	}
+
+	if err := s.client.checkResponse(resp); err != nil {
+		return nil, &Response{Response: resp}, err
+	}
+
+	response := &Response{Response: resp}
+	s.client.parsePaginationHeaders(response)
+
+	return events, response, nil
+}
+
+// InfraProvider represents an infrastructure provider
+type InfraProvider struct {
+	Identifier  *string                `json:"identifier,omitempty"`
+	Name        *string                `json:"name,omitempty"`
+	Description *string                `json:"description,omitempty"`
+	Type        *InfraProviderType     `json:"type,omitempty"`
+	SpaceID     *int64                 `json:"space_id,omitempty"`
+	SpacePath   *string                `json:"space_path,omitempty"`
+	Metadata    *InfraProviderMetadata `json:"metadata,omitempty"`
+	Templates   []*InfraTemplate       `json:"templates,omitempty"`
+	Created     *Time                  `json:"created,omitempty"`
+	Updated     *Time                  `json:"updated,omitempty"`
+}
+
+// InfraProviderType represents the type of infrastructure provider
+type InfraProviderType string
+
+const (
+	InfraProviderTypeDocker     InfraProviderType = "docker"
+	InfraProviderTypeKubernetes InfraProviderType = "kubernetes"
+	InfraProviderTypeAWS        InfraProviderType = "aws"
+	InfraProviderTypeGCP        InfraProviderType = "gcp"
+	InfraProviderTypeAzure      InfraProviderType = "azure"
+)
+
+// InfraProviderMetadata represents metadata for an infrastructure provider
+type InfraProviderMetadata struct {
+	Region       *string            `json:"region,omitempty"`
+	Zone         *string            `json:"zone,omitempty"`
+	Host         *string            `json:"host,omitempty"`
+	Port         *int               `json:"port,omitempty"`
+	Namespace    *string            `json:"namespace,omitempty"`
+	StorageClass *string            `json:"storage_class,omitempty"`
+	Network      *string            `json:"network,omitempty"`
+	Subnet       *string            `json:"subnet,omitempty"`
+	Credentials  map[string]string  `json:"credentials,omitempty"`
+	Properties   map[string]any `json:"properties,omitempty"`
+}
+
+// InfraTemplate represents a resource template for an infrastructure provider
+type InfraTemplate struct {
+	Identifier  *string                    `json:"identifier,omitempty"`
+	Name        *string                    `json:"name,omitempty"`
+	Description *string                    `json:"description,omitempty"`
+	CPU         *string                    `json:"cpu,omitempty"`
+	Memory      *string                    `json:"memory,omitempty"`
+	Disk        *string                    `json:"disk,omitempty"`
+	Properties  map[string]any     `json:"properties,omitempty"`
+}
+
+// CreateInfraProviderRequest represents a request to create a new infrastructure provider
+type CreateInfraProviderRequest struct {
+	Identifier  *string                `json:"identifier,omitempty"`
+	Name        *string                `json:"name,omitempty"`
+	Description *string                `json:"description,omitempty"`
+	Type        InfraProviderType      `json:"type,omitempty"`
+	SpaceRef    *string                `json:"space_ref,omitempty"`
+	Metadata    *InfraProviderMetadata `json:"metadata,omitempty"`
+	Templates   []*InfraTemplate       `json:"templates,omitempty"`
+}
+
+// CreateInfraProvider creates a new infrastructure provider
+func (s *InfraProvidersService) CreateInfraProvider(ctx context.Context, spaceRef string, provider *CreateInfraProviderRequest) (*InfraProvider, *Response, error) {
+	path := fmt.Sprintf("spaces/%s/infra-providers", spaceRef)
+	var infraProvider InfraProvider
+	resp, err := s.client.Post(ctx, path, provider, &infraProvider)
+	if err != nil {
+		return nil, resp, err
+	}
+	return &infraProvider, resp, nil
+}
+
+// GetInfraProvider retrieves a specific infrastructure provider by identifier
+func (s *InfraProvidersService) GetInfraProvider(ctx context.Context, spaceRef, identifier string) (*InfraProvider, *Response, error) {
+	path := fmt.Sprintf("spaces/%s/infra-providers/%s", spaceRef, identifier)
+	var infraProvider InfraProvider
+	resp, err := s.client.Get(ctx, path, &infraProvider)
+	if err != nil {
+		return nil, resp, err
+	}
+	return &infraProvider, resp, nil
+}

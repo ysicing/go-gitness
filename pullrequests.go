@@ -307,3 +307,75 @@ func (s *PullRequestsService) ListPullRequestReviewers(ctx context.Context, repo
 	}
 	return reviewers, resp, nil
 }
+
+// UserGroupReviewer represents a user group reviewer for a pull request
+type UserGroupReviewer struct {
+	ID            *int64                   `json:"id,omitempty"`
+	UserGroupID   *int64                   `json:"user_group_id,omitempty"`
+	AddedBy       *PrincipalInfo           `json:"added_by,omitempty"`
+	Created       *Time                    `json:"created,omitempty"`
+	Updated       *Time                    `json:"updated,omitempty"`
+	Decision      *PullReqReviewDecision   `json:"decision,omitempty"`
+	UserDecisions []UserReviewDecision     `json:"user_decisions,omitempty"`
+}
+
+// UserReviewDecision represents an individual user's review decision within a user group
+type UserReviewDecision struct {
+	UserID   *int64                 `json:"user_id,omitempty"`
+	UserInfo *PrincipalInfo         `json:"user_info,omitempty"`
+	Decision *PullReqReviewDecision `json:"decision,omitempty"`
+	Created  *Time                  `json:"created,omitempty"`
+}
+
+// PullReqReviewDecision represents the review decision enum
+type PullReqReviewDecision string
+
+const (
+	PullReqReviewDecisionApproved         PullReqReviewDecision = "approved"
+	PullReqReviewDecisionRequestedChanges PullReqReviewDecision = "changereq"
+	PullReqReviewDecisionPending          PullReqReviewDecision = "pending"
+)
+
+// CombinedReviewers represents combined individual and user group reviewers
+type CombinedReviewers struct {
+	Reviewers      []*Reviewer           `json:"reviewers,omitempty"`
+	UserGroupReviewers []*UserGroupReviewer `json:"usergroup_reviewers,omitempty"`
+}
+
+// UserGroupReviewerAddRequest represents a request to add a user group reviewer
+type UserGroupReviewerAddRequest struct {
+	UserGroupID *int64 `json:"usergroup_id,omitempty"`
+}
+
+// ListPullRequestCombinedReviewers lists both individual and user group reviewers for a pull request
+func (s *PullRequestsService) ListPullRequestCombinedReviewers(ctx context.Context, repoPath string, pullRequestNumber int64) (*CombinedReviewers, *Response, error) {
+	path := fmt.Sprintf("repos/%s/pullreq/%d/reviewers/combined", repoPath, pullRequestNumber)
+	var combinedReviewers CombinedReviewers
+	resp, err := s.client.Get(ctx, path, &combinedReviewers)
+	if err != nil {
+		return nil, resp, err
+	}
+	return &combinedReviewers, resp, nil
+}
+
+// AddPullRequestUserGroupReviewer adds a user group reviewer to a pull request
+func (s *PullRequestsService) AddPullRequestUserGroupReviewer(ctx context.Context, repoPath string, pullRequestNumber int64, userGroupID int64) (*UserGroupReviewer, *Response, error) {
+	path := fmt.Sprintf("repos/%s/pullreq/%d/reviewers/usergroups", repoPath, pullRequestNumber)
+	req := &UserGroupReviewerAddRequest{
+		UserGroupID: &userGroupID,
+	}
+	
+	var userGroupReviewer UserGroupReviewer
+	resp, err := s.client.Put(ctx, path, req, &userGroupReviewer)
+	if err != nil {
+		return nil, resp, err
+	}
+	return &userGroupReviewer, resp, nil
+}
+
+// RemovePullRequestUserGroupReviewer removes a user group reviewer from a pull request
+func (s *PullRequestsService) RemovePullRequestUserGroupReviewer(ctx context.Context, repoPath string, pullRequestNumber int64, userGroupID int64) (*Response, error) {
+	path := fmt.Sprintf("repos/%s/pullreq/%d/reviewers/usergroups/%d", repoPath, pullRequestNumber, userGroupID)
+	resp, err := s.client.Delete(ctx, path, nil)
+	return resp, err
+}
