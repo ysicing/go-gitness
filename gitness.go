@@ -300,6 +300,30 @@ func (c *Client) Delete(ctx context.Context, path string, body any) (*Response, 
 	return &Response{Response: resp}, nil
 }
 
+// DeleteWithResponse performs a DELETE request and returns the response body
+func (c *Client) DeleteWithResponse(ctx context.Context, path string, body any, result any) (*Response, error) {
+	req := c.client.R().SetContext(ctx)
+
+	if body != nil {
+		req.SetBodyJsonMarshal(body)
+	}
+
+	if result != nil {
+		req.SetSuccessResult(result)
+	}
+
+	resp, err := req.Delete(path)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := c.checkResponse(resp); err != nil {
+		return &Response{Response: resp}, err
+	}
+
+	return &Response{Response: resp}, nil
+}
+
 // checkResponse checks for API errors
 func (c *Client) checkResponse(r *req.Response) error {
 	if r.IsSuccessState() {

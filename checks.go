@@ -18,39 +18,39 @@ type ChecksService struct {
 
 // Check represents a Gitness check
 type Check struct {
-	ID         *int64                 `json:"id,omitempty"`
-	Created    *Time                  `json:"created,omitempty"`
-	Updated    *Time                  `json:"updated,omitempty"`
-	RepoID     *int64                 `json:"repo_id,omitempty"`
-	CommitSHA  *string                `json:"commit_sha,omitempty"`
-	Identifier *string                `json:"identifier,omitempty"`
-	Status     *string                `json:"status,omitempty"`
-	Started    *Time                  `json:"started,omitempty"`
-	Ended      *Time                  `json:"ended,omitempty"`
-	Link       *string                `json:"link,omitempty"`
-	Summary    *string                `json:"summary,omitempty"`
+	ID         *int64         `json:"id,omitempty"`
+	Created    *Time          `json:"created,omitempty"`
+	Updated    *Time          `json:"updated,omitempty"`
+	RepoID     *int64         `json:"repo_id,omitempty"`
+	CommitSHA  *string        `json:"commit_sha,omitempty"`
+	Identifier *string        `json:"identifier,omitempty"`
+	Status     *string        `json:"status,omitempty"`
+	Started    *Time          `json:"started,omitempty"`
+	Ended      *Time          `json:"ended,omitempty"`
+	Link       *string        `json:"link,omitempty"`
+	Summary    *string        `json:"summary,omitempty"`
 	Payload    map[string]any `json:"payload,omitempty"`
-	UID        *string                `json:"uid,omitempty"`
+	UID        *string        `json:"uid,omitempty"`
 }
 
 // CreateCheckOptions specifies options for creating a check
 type CreateCheckOptions struct {
-	Identifier *string                `json:"identifier,omitempty"`
-	Status     *string                `json:"status,omitempty"`
-	Started    *Time                  `json:"started,omitempty"`
-	Ended      *Time                  `json:"ended,omitempty"`
-	Link       *string                `json:"link,omitempty"`
-	Summary    *string                `json:"summary,omitempty"`
+	Identifier *string        `json:"identifier,omitempty"`
+	Status     *string        `json:"status,omitempty"`
+	Started    *Time          `json:"started,omitempty"`
+	Ended      *Time          `json:"ended,omitempty"`
+	Link       *string        `json:"link,omitempty"`
+	Summary    *string        `json:"summary,omitempty"`
 	Payload    map[string]any `json:"payload,omitempty"`
 }
 
 // UpdateCheckOptions specifies options for updating a check
 type UpdateCheckOptions struct {
-	Status  *string                `json:"status,omitempty"`
-	Started *Time                  `json:"started,omitempty"`
-	Ended   *Time                  `json:"ended,omitempty"`
-	Link    *string                `json:"link,omitempty"`
-	Summary *string                `json:"summary,omitempty"`
+	Status  *string        `json:"status,omitempty"`
+	Started *Time          `json:"started,omitempty"`
+	Ended   *Time          `json:"ended,omitempty"`
+	Link    *string        `json:"link,omitempty"`
+	Summary *string        `json:"summary,omitempty"`
 	Payload map[string]any `json:"payload,omitempty"`
 }
 

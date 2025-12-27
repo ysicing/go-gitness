@@ -36,12 +36,12 @@ type UploadCiCacheRequest struct {
 // UploadCiCache uploads a CI cache entry
 func (s *CiCacheService) UploadCiCache(ctx context.Context, key string, version int, data io.Reader) (*CiCacheEntry, *Response, error) {
 	path := fmt.Sprintf("ci/cache/%s", key)
-	
+
 	req := s.client.client.R().SetContext(ctx)
 	if version > 0 {
 		req.SetQueryParam("version", fmt.Sprintf("%d", version))
 	}
-	
+
 	// Set the body data for upload
 	req.SetBody(data)
 	req.SetContentType("application/octet-stream")

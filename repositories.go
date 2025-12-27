@@ -375,3 +375,229 @@ type ListPathsOptions struct {
 	Path          *string `url:"path,omitempty"`
 	IncludeCommit *bool   `url:"include_commit,omitempty"`
 }
+
+// Tag represents a git tag
+type Tag struct {
+	Name        *string    `json:"name,omitempty"`
+	SHA         *string    `json:"sha,omitempty"`
+	IsAnnotated *bool      `json:"is_annotated,omitempty"`
+	Title       *string    `json:"title,omitempty"`
+	Message     *string    `json:"message,omitempty"`
+	Tagger      *Signature `json:"tagger,omitempty"`
+	Commit      *Commit    `json:"commit,omitempty"`
+}
+
+// ListTagsOptions specifies options for listing tags
+type ListTagsOptions struct {
+	ListOptions
+	Query         *string `url:"query,omitempty"`
+	Sort          *string `url:"sort,omitempty"`
+	Order         *string `url:"order,omitempty"`
+	IncludeCommit *bool   `url:"include_commit,omitempty"`
+}
+
+// ListTags lists repository tags
+func (s *RepositoriesService) ListTags(ctx context.Context, repoPath string, opt *ListTagsOptions) ([]*Tag, *Response, error) {
+	path := fmt.Sprintf("repos/%s/tags", repoPath)
+	req := s.client.client.R().SetContext(ctx)
+
+	if opt != nil {
+		buildQueryParams(req, &opt.ListOptions)
+		if opt.Query != nil {
+			req.SetQueryParam("query", *opt.Query)
+		}
+		if opt.Sort != nil {
+			req.SetQueryParam("sort", *opt.Sort)
+		}
+		if opt.Order != nil {
+			req.SetQueryParam("order", *opt.Order)
+		}
+		if opt.IncludeCommit != nil {
+			req.SetQueryParam("include_commit", fmt.Sprintf("%t", *opt.IncludeCommit))
+		}
+	}
+
+	var tags []*Tag
+	req.SetSuccessResult(&tags)
+
+	resp, err := req.Get(path)
+	if err != nil {
+		return nil, &Response{Response: resp}, err
+	}
+
+	if err := s.client.checkResponse(resp); err != nil {
+		return nil, &Response{Response: resp}, err
+	}
+
+	response := &Response{Response: resp}
+	s.client.parsePaginationHeaders(response)
+
+	return tags, response, nil
+}
+
+// CreateTagOptions specifies options for creating a tag
+type CreateTagOptions struct {
+	Name        *string `json:"name,omitempty"`
+	Target      *string `json:"target,omitempty"`
+	Message     *string `json:"message,omitempty"`
+	BypassRules *bool   `json:"bypass_rules,omitempty"`
+	DryRunRules *bool   `json:"dry_run_rules,omitempty"`
+}
+
+// CreateTagOutput represents the response from creating a tag
+type CreateTagOutput struct {
+	Tag
+	DryRunRules    *bool            `json:"dry_run_rules,omitempty"`
+	RuleViolations []*RuleViolation `json:"rule_violations,omitempty"`
+}
+
+// RuleViolation represents a rule violation
+type RuleViolation struct {
+	Rule       *RuleInfo    `json:"rule,omitempty"`
+	Bypassable *bool        `json:"bypassable,omitempty"`
+	Bypassed   *bool        `json:"bypassed,omitempty"`
+	Violations []*Violation `json:"violations,omitempty"`
+}
+
+// RuleInfo represents rule information
+type RuleInfo struct {
+	ID         *int64  `json:"id,omitempty"`
+	Identifier *string `json:"identifier,omitempty"`
+	Type       *string `json:"type,omitempty"`
+	State      *string `json:"state,omitempty"`
+}
+
+// Violation represents a single violation
+type Violation struct {
+	Code    *string `json:"code,omitempty"`
+	Message *string `json:"message,omitempty"`
+}
+
+// CreateTag creates a new tag
+func (s *RepositoriesService) CreateTag(ctx context.Context, repoPath string, opt *CreateTagOptions) (*CreateTagOutput, *Response, error) {
+	path := fmt.Sprintf("repos/%s/tags", repoPath)
+	var output CreateTagOutput
+	resp, err := s.client.Post(ctx, path, opt, &output)
+	if err != nil {
+		return nil, resp, err
+	}
+	return &output, resp, nil
+}
+
+// DeleteTagOutput represents the response from deleting a tag
+type DeleteTagOutput struct {
+	DryRunRules    *bool            `json:"dry_run_rules,omitempty"`
+	RuleViolations []*RuleViolation `json:"rule_violations,omitempty"`
+}
+
+// DeleteTag deletes a tag
+func (s *RepositoriesService) DeleteTag(ctx context.Context, repoPath, tagName string) (*DeleteTagOutput, *Response, error) {
+	path := fmt.Sprintf("repos/%s/tags/%s", repoPath, tagName)
+	var output DeleteTagOutput
+	resp, err := s.client.DeleteWithResponse(ctx, path, nil, &output)
+	if err != nil {
+		return nil, resp, err
+	}
+	return &output, resp, nil
+}
+
+// CommitFileAction represents a file action in a commit
+type CommitFileAction struct {
+	Action   *string `json:"action,omitempty"`
+	Path     *string `json:"path,omitempty"`
+	Payload  *string `json:"payload,omitempty"`
+	SHA      *string `json:"sha,omitempty"`
+	Encoding *string `json:"encoding,omitempty"`
+}
+
+// CommitFilesOptions specifies options for committing files
+type CommitFilesOptions struct {
+	Actions     []*CommitFileAction `json:"actions,omitempty"`
+	Branch      *string             `json:"branch,omitempty"`
+	NewBranch   *string             `json:"new_branch,omitempty"`
+	Title       *string             `json:"title,omitempty"`
+	Message     *string             `json:"message,omitempty"`
+	Author      *Identity           `json:"author,omitempty"`
+	BypassRules *bool               `json:"bypass_rules,omitempty"`
+	DryRunRules *bool               `json:"dry_run_rules,omitempty"`
+}
+
+// FileReference represents a file reference
+type FileReference struct {
+	Path    *string `json:"path,omitempty"`
+	BlobSHA *string `json:"blob_sha,omitempty"`
+}
+
+// CommitFilesResponse represents the response from committing files
+type CommitFilesResponse struct {
+	CommitID       *string          `json:"commit_id,omitempty"`
+	ChangedFiles   []*FileReference `json:"changed_files,omitempty"`
+	DryRunRules    *bool            `json:"dry_run_rules,omitempty"`
+	RuleViolations []*RuleViolation `json:"rule_violations,omitempty"`
+}
+
+// CommitFiles commits files to a repository
+func (s *RepositoriesService) CommitFiles(ctx context.Context, repoPath string, opt *CommitFilesOptions) (*CommitFilesResponse, *Response, error) {
+	path := fmt.Sprintf("repos/%s/commits", repoPath)
+	var output CommitFilesResponse
+	resp, err := s.client.Post(ctx, path, opt, &output)
+	if err != nil {
+		return nil, resp, err
+	}
+	return &output, resp, nil
+}
+
+// GetCommitDiffOptions specifies options for getting commit diff
+type GetCommitDiffOptions struct {
+	IgnoreWhitespace *bool `url:"ignore_whitespace,omitempty"`
+}
+
+// GetCommitDiff retrieves the diff for a specific commit
+func (s *RepositoriesService) GetCommitDiff(ctx context.Context, repoPath, commitSHA string, opt *GetCommitDiffOptions) (string, *Response, error) {
+	path := fmt.Sprintf("repos/%s/commits/%s/diff", repoPath, commitSHA)
+	req := s.client.client.R().SetContext(ctx)
+
+	if opt != nil && opt.IgnoreWhitespace != nil {
+		req.SetQueryParam("ignore_whitespace", fmt.Sprintf("%t", *opt.IgnoreWhitespace))
+	}
+
+	resp, err := req.Get(path)
+	if err != nil {
+		return "", &Response{Response: resp}, err
+	}
+
+	if err := s.client.checkResponse(resp); err != nil {
+		return "", &Response{Response: resp}, err
+	}
+
+	return resp.String(), &Response{Response: resp}, nil
+}
+
+// CommitDivergenceRequest represents a divergence calculation request
+type CommitDivergenceRequest struct {
+	From *string `json:"from,omitempty"`
+	To   *string `json:"to,omitempty"`
+}
+
+// CommitDivergence represents commit divergence information
+type CommitDivergence struct {
+	Ahead  *int `json:"ahead,omitempty"`
+	Behind *int `json:"behind,omitempty"`
+}
+
+// CalculateCommitDivergenceOptions specifies options for calculating commit divergence
+type CalculateCommitDivergenceOptions struct {
+	MaxCount *int                       `json:"max_count,omitempty"`
+	Requests []*CommitDivergenceRequest `json:"requests,omitempty"`
+}
+
+// CalculateCommitDivergence calculates the divergence between commits
+func (s *RepositoriesService) CalculateCommitDivergence(ctx context.Context, repoPath string, opt *CalculateCommitDivergenceOptions) ([]*CommitDivergence, *Response, error) {
+	path := fmt.Sprintf("repos/%s/commits/calculate-divergence", repoPath)
+	var divergences []*CommitDivergence
+	resp, err := s.client.Post(ctx, path, opt, &divergences)
+	if err != nil {
+		return nil, resp, err
+	}
+	return divergences, resp, nil
+}

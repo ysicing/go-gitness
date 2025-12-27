@@ -200,23 +200,23 @@ func (s *SecretsService) DeleteSecret(ctx context.Context, secretRef string) (*R
 
 // Gitspace represents a Gitness gitspace
 type Gitspace struct {
-	ID                *int64             `json:"id,omitempty"`
-	Identifier        *string            `json:"identifier,omitempty"`
-	Name              *string            `json:"name,omitempty"`
-	Description       *string            `json:"description,omitempty"`
-	SpaceID           *int64             `json:"space_id,omitempty"`
-	SpacePath         *string            `json:"space_path,omitempty"`
-	IDE               *GitspaceIDE       `json:"ide,omitempty"`
-	InfraProviderType *string            `json:"infra_provider_type,omitempty"`
-	ResourceType      *string            `json:"resource_type,omitempty"`
-	UserUID           *string            `json:"user_uid,omitempty"`
-	UserDisplayName   *string            `json:"user_display_name,omitempty"`
-	State             *GitspaceState     `json:"state,omitempty"`
-	URL               *string            `json:"url,omitempty"`
-	Created           *Time              `json:"created,omitempty"`
-	Updated           *Time              `json:"updated,omitempty"`
-	Accessed          *Time              `json:"accessed,omitempty"`
-	TotalTimeUsed     *int64             `json:"total_time_used,omitempty"`
+	ID                *int64         `json:"id,omitempty"`
+	Identifier        *string        `json:"identifier,omitempty"`
+	Name              *string        `json:"name,omitempty"`
+	Description       *string        `json:"description,omitempty"`
+	SpaceID           *int64         `json:"space_id,omitempty"`
+	SpacePath         *string        `json:"space_path,omitempty"`
+	IDE               *GitspaceIDE   `json:"ide,omitempty"`
+	InfraProviderType *string        `json:"infra_provider_type,omitempty"`
+	ResourceType      *string        `json:"resource_type,omitempty"`
+	UserUID           *string        `json:"user_uid,omitempty"`
+	UserDisplayName   *string        `json:"user_display_name,omitempty"`
+	State             *GitspaceState `json:"state,omitempty"`
+	URL               *string        `json:"url,omitempty"`
+	Created           *Time          `json:"created,omitempty"`
+	Updated           *Time          `json:"updated,omitempty"`
+	Accessed          *Time          `json:"accessed,omitempty"`
+	TotalTimeUsed     *int64         `json:"total_time_used,omitempty"`
 }
 
 // GitspaceIDE represents IDE configuration for a gitspace
@@ -224,7 +224,7 @@ type GitspaceIDE string
 
 const (
 	GitspaceIDEVSCode         GitspaceIDE = "vscode"
-	GitspaceIDEVSCodeWeb      GitspaceIDE = "vscode-web" 
+	GitspaceIDEVSCodeWeb      GitspaceIDE = "vscode-web"
 	GitspaceIDEJetBrainsFleet GitspaceIDE = "jetbrains-fleet"
 )
 
@@ -407,27 +407,27 @@ const (
 
 // InfraProviderMetadata represents metadata for an infrastructure provider
 type InfraProviderMetadata struct {
-	Region       *string            `json:"region,omitempty"`
-	Zone         *string            `json:"zone,omitempty"`
-	Host         *string            `json:"host,omitempty"`
-	Port         *int               `json:"port,omitempty"`
-	Namespace    *string            `json:"namespace,omitempty"`
-	StorageClass *string            `json:"storage_class,omitempty"`
-	Network      *string            `json:"network,omitempty"`
-	Subnet       *string            `json:"subnet,omitempty"`
-	Credentials  map[string]string  `json:"credentials,omitempty"`
-	Properties   map[string]any `json:"properties,omitempty"`
+	Region       *string           `json:"region,omitempty"`
+	Zone         *string           `json:"zone,omitempty"`
+	Host         *string           `json:"host,omitempty"`
+	Port         *int              `json:"port,omitempty"`
+	Namespace    *string           `json:"namespace,omitempty"`
+	StorageClass *string           `json:"storage_class,omitempty"`
+	Network      *string           `json:"network,omitempty"`
+	Subnet       *string           `json:"subnet,omitempty"`
+	Credentials  map[string]string `json:"credentials,omitempty"`
+	Properties   map[string]any    `json:"properties,omitempty"`
 }
 
 // InfraTemplate represents a resource template for an infrastructure provider
 type InfraTemplate struct {
-	Identifier  *string                    `json:"identifier,omitempty"`
-	Name        *string                    `json:"name,omitempty"`
-	Description *string                    `json:"description,omitempty"`
-	CPU         *string                    `json:"cpu,omitempty"`
-	Memory      *string                    `json:"memory,omitempty"`
-	Disk        *string                    `json:"disk,omitempty"`
-	Properties  map[string]any     `json:"properties,omitempty"`
+	Identifier  *string        `json:"identifier,omitempty"`
+	Name        *string        `json:"name,omitempty"`
+	Description *string        `json:"description,omitempty"`
+	CPU         *string        `json:"cpu,omitempty"`
+	Memory      *string        `json:"memory,omitempty"`
+	Disk        *string        `json:"disk,omitempty"`
+	Properties  map[string]any `json:"properties,omitempty"`
 }
 
 // CreateInfraProviderRequest represents a request to create a new infrastructure provider

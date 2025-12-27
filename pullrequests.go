@@ -310,13 +310,13 @@ func (s *PullRequestsService) ListPullRequestReviewers(ctx context.Context, repo
 
 // UserGroupReviewer represents a user group reviewer for a pull request
 type UserGroupReviewer struct {
-	ID            *int64                   `json:"id,omitempty"`
-	UserGroupID   *int64                   `json:"user_group_id,omitempty"`
-	AddedBy       *PrincipalInfo           `json:"added_by,omitempty"`
-	Created       *Time                    `json:"created,omitempty"`
-	Updated       *Time                    `json:"updated,omitempty"`
-	Decision      *PullReqReviewDecision   `json:"decision,omitempty"`
-	UserDecisions []UserReviewDecision     `json:"user_decisions,omitempty"`
+	ID            *int64                 `json:"id,omitempty"`
+	UserGroupID   *int64                 `json:"user_group_id,omitempty"`
+	AddedBy       *PrincipalInfo         `json:"added_by,omitempty"`
+	Created       *Time                  `json:"created,omitempty"`
+	Updated       *Time                  `json:"updated,omitempty"`
+	Decision      *PullReqReviewDecision `json:"decision,omitempty"`
+	UserDecisions []UserReviewDecision   `json:"user_decisions,omitempty"`
 }
 
 // UserReviewDecision represents an individual user's review decision within a user group
@@ -338,7 +338,7 @@ const (
 
 // CombinedReviewers represents combined individual and user group reviewers
 type CombinedReviewers struct {
-	Reviewers      []*Reviewer           `json:"reviewers,omitempty"`
+	Reviewers          []*Reviewer          `json:"reviewers,omitempty"`
 	UserGroupReviewers []*UserGroupReviewer `json:"usergroup_reviewers,omitempty"`
 }
 
@@ -364,7 +364,7 @@ func (s *PullRequestsService) AddPullRequestUserGroupReviewer(ctx context.Contex
 	req := &UserGroupReviewerAddRequest{
 		UserGroupID: &userGroupID,
 	}
-	
+
 	var userGroupReviewer UserGroupReviewer
 	resp, err := s.client.Put(ctx, path, req, &userGroupReviewer)
 	if err != nil {

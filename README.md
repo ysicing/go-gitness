@@ -144,6 +144,45 @@ fileContent, _, err := client.Repositories.GetFileContent(ctx, "my-space/my-repo
     Ref: gitness.Ptr("main"),
     IncludeCommit: gitness.Ptr(true),
 })
+
+// 提交文件到仓库
+commitResp, _, err := client.Repositories.CommitFiles(ctx, "my-space/my-repo", &gitness.CommitFilesOptions{
+    Branch:  gitness.Ptr("main"),
+    Title:   gitness.Ptr("Update README"),
+    Message: gitness.Ptr("Add new section"),
+    Actions: []*gitness.CommitFileAction{
+        {
+            Action:  gitness.Ptr("UPDATE"),
+            Path:    gitness.Ptr("README.md"),
+            Payload: gitness.Ptr("# Updated Content"),
+        },
+    },
+})
+
+// 获取提交差异
+diff, _, err := client.Repositories.GetCommitDiff(ctx, "my-space/my-repo", "commit-sha", nil)
+```
+
+### 标签管理
+
+```go
+// 列出标签
+tags, _, err := client.Repositories.ListTags(ctx, "my-space/my-repo", &gitness.ListTagsOptions{
+    IncludeCommit: gitness.Ptr(true),
+    ListOptions: gitness.ListOptions{
+        Limit: gitness.Ptr(20),
+    },
+})
+
+// 创建标签
+tag, _, err := client.Repositories.CreateTag(ctx, "my-space/my-repo", &gitness.CreateTagOptions{
+    Name:    gitness.Ptr("v1.0.0"),
+    Target:  gitness.Ptr("main"),
+    Message: gitness.Ptr("Release v1.0.0"),
+})
+
+// 删除标签
+_, err = client.Repositories.DeleteTag(ctx, "my-space/my-repo", "v1.0.0")
 ```
 
 ### CI/CD 检查
@@ -187,6 +226,45 @@ templates, _, err := client.Templates.ListTemplates(ctx, "my-space", nil)
 template, _, err := client.Templates.GetTemplate(ctx, "my-space", "node-ci")
 ```
 
+### Pipeline 管理
+
+```go
+// 创建 pipeline
+pipeline, _, err := client.Pipelines.CreatePipeline(ctx, "my-space/my-repo", &gitness.CreatePipelineOptions{
+    Identifier:    gitness.Ptr("build-and-test"),
+    Description:   gitness.Ptr("Build and test pipeline"),
+    ConfigPath:    gitness.Ptr(".harness/pipeline.yaml"),
+    DefaultBranch: gitness.Ptr("main"),
+})
+
+// 列出 pipelines
+pipelines, _, err := client.Pipelines.ListPipelines(ctx, "my-space/my-repo", nil)
+
+// 更新 pipeline
+updatedPipeline, _, err := client.Pipelines.UpdatePipeline(ctx, "my-space/my-repo", "build-and-test", &gitness.UpdatePipelineOptions{
+    Description: gitness.Ptr("Updated description"),
+    Disabled:    gitness.Ptr(false),
+})
+
+// 触发执行
+execution, _, err := client.Pipelines.CreateExecution(ctx, "my-space/my-repo", "build-and-test", gitness.Ptr("main"))
+
+// 查看执行日志
+logs, _, err := client.Pipelines.ViewExecutionLogs(ctx, "my-space/my-repo", "build-and-test", 1, 0, 0)
+for _, line := range logs {
+    fmt.Printf("[%d] %s\n", *line.Pos, *line.Out)
+}
+
+// 取消执行
+_, err = client.Pipelines.CancelPipelineExecution(ctx, "my-space/my-repo", "build-and-test", 1)
+
+// 重试执行
+retryExec, _, err := client.Pipelines.RetryPipelineExecution(ctx, "my-space/my-repo", "build-and-test", 1)
+
+// 删除 pipeline
+_, err = client.Pipelines.DeletePipeline(ctx, "my-space/my-repo", "build-and-test")
+```
+
 ### 高级空间管理
 
 ```go
@@ -219,12 +297,12 @@ SDK 通过专门的服务模块提供对 Gitness API 的全面覆盖：
 - **Users**：用户档案和身份验证管理
 
 ### 仓库服务
-- **Repositories**：Git 仓库管理、分支、提交、文件操作
+- **Repositories**：Git 仓库管理、分支、提交、标签、文件操作
 - **PullRequests**：Pull request 生命周期、审查、合并、评论
 - **Checks**：CI/CD 状态检查和构建报告
 
 ### DevOps 服务
-- **Pipelines**：CI/CD pipeline 操作和执行
+- **Pipelines**：CI/CD pipeline 完整生命周期管理（创建、更新、删除、执行、日志）
 - **Secrets**：密钥和凭证管理
 - **Webhooks**：事件通知管理
 - **Templates**：可重用的 pipeline 和配置模板

@@ -144,9 +144,9 @@ func main() {
 	} else {
 		fmt.Printf("Recent pipelines:\n")
 		for _, pipeline := range pipelines {
-			fmt.Printf("- Pipeline #%d: %s\n", *pipeline.Number, *pipeline.Status)
-			if pipeline.Title != nil {
-				fmt.Printf("  Title: %s\n", *pipeline.Title)
+			fmt.Printf("- Pipeline %s: %v\n", *pipeline.Identifier, *pipeline.Disabled)
+			if pipeline.Description != nil {
+				fmt.Printf("  Description: %s\n", *pipeline.Description)
 			}
 		}
 	}
