@@ -9,6 +9,7 @@ package gitness
 import (
 	"context"
 	"fmt"
+	"net/url"
 )
 
 // GitspacesService handles communication with gitspace related methods
@@ -74,7 +75,7 @@ type CreateSecretOptions struct {
 
 // CreateWebhook creates a webhook for a repository
 func (s *WebhooksService) CreateWebhook(ctx context.Context, repoPath string, opt *CreateWebhookOptions) (*Webhook, *Response, error) {
-	path := fmt.Sprintf("repos/%s/webhooks", repoPath)
+	path := fmt.Sprintf("repos/%s/webhooks", url.PathEscape(repoPath))
 	var webhook Webhook
 	resp, err := s.client.Post(ctx, path, opt, &webhook)
 	if err != nil {
@@ -85,7 +86,7 @@ func (s *WebhooksService) CreateWebhook(ctx context.Context, repoPath string, op
 
 // ListWebhooks lists webhooks for a repository
 func (s *WebhooksService) ListWebhooks(ctx context.Context, repoPath string, opt *ListOptions) ([]*Webhook, *Response, error) {
-	path := fmt.Sprintf("repos/%s/webhooks", repoPath)
+	path := fmt.Sprintf("repos/%s/webhooks", url.PathEscape(repoPath))
 	var webhooks []*Webhook
 	resp, err := s.client.performListRequest(ctx, path, opt, &webhooks)
 	if err != nil {
@@ -96,7 +97,7 @@ func (s *WebhooksService) ListWebhooks(ctx context.Context, repoPath string, opt
 
 // CreateSecret creates a secret for a repository
 func (s *SecretsService) CreateSecret(ctx context.Context, repoPath string, opt *CreateSecretOptions) (*Secret, *Response, error) {
-	path := fmt.Sprintf("repos/%s/secrets", repoPath)
+	path := fmt.Sprintf("repos/%s/secrets", url.PathEscape(repoPath))
 	var secret Secret
 	resp, err := s.client.Post(ctx, path, opt, &secret)
 	if err != nil {
@@ -107,7 +108,7 @@ func (s *SecretsService) CreateSecret(ctx context.Context, repoPath string, opt 
 
 // ListRepoSecrets lists secrets for a repository
 func (s *SecretsService) ListRepoSecrets(ctx context.Context, repoPath string, opt *ListOptions) ([]*Secret, *Response, error) {
-	path := fmt.Sprintf("repos/%s/secrets", repoPath)
+	path := fmt.Sprintf("repos/%s/secrets", url.PathEscape(repoPath))
 	var secrets []*Secret
 	resp, err := s.client.performListRequest(ctx, path, opt, &secrets)
 	if err != nil {
@@ -118,7 +119,7 @@ func (s *SecretsService) ListRepoSecrets(ctx context.Context, repoPath string, o
 
 // CreateRepoSecret creates a secret for a repository
 func (s *SecretsService) CreateRepoSecret(ctx context.Context, repoPath string, opt *CreateSecretOptions) (*Secret, *Response, error) {
-	path := fmt.Sprintf("repos/%s/secrets", repoPath)
+	path := fmt.Sprintf("repos/%s/secrets", url.PathEscape(repoPath))
 	var secret Secret
 	resp, err := s.client.Post(ctx, path, opt, &secret)
 	if err != nil {
@@ -129,7 +130,7 @@ func (s *SecretsService) CreateRepoSecret(ctx context.Context, repoPath string, 
 
 // ListSpaceSecrets lists secrets for a space
 func (s *SecretsService) ListSpaceSecrets(ctx context.Context, spaceRef string, opt *ListOptions) ([]*Secret, *Response, error) {
-	path := fmt.Sprintf("spaces/%s/secrets", spaceRef)
+	path := fmt.Sprintf("spaces/%s/secrets", url.PathEscape(spaceRef))
 	var secrets []*Secret
 	resp, err := s.client.performListRequest(ctx, path, opt, &secrets)
 	if err != nil {
@@ -140,7 +141,7 @@ func (s *SecretsService) ListSpaceSecrets(ctx context.Context, spaceRef string, 
 
 // CreateSpaceSecret creates a secret for a space
 func (s *SecretsService) CreateSpaceSecret(ctx context.Context, spaceRef string, opt *CreateSecretOptions) (*Secret, *Response, error) {
-	path := fmt.Sprintf("spaces/%s/secrets", spaceRef)
+	path := fmt.Sprintf("spaces/%s/secrets", url.PathEscape(spaceRef))
 	var secret Secret
 	resp, err := s.client.Post(ctx, path, opt, &secret)
 	if err != nil {
@@ -171,7 +172,7 @@ func (s *SecretsService) CreateGlobalSecret(ctx context.Context, opt *CreateSecr
 
 // GetSecret retrieves a specific secret
 func (s *SecretsService) GetSecret(ctx context.Context, secretRef string) (*Secret, *Response, error) {
-	path := fmt.Sprintf("secrets/%s", secretRef)
+	path := fmt.Sprintf("secrets/%s", url.PathEscape(secretRef))
 	var secret Secret
 	resp, err := s.client.Get(ctx, path, &secret)
 	if err != nil {
@@ -182,7 +183,7 @@ func (s *SecretsService) GetSecret(ctx context.Context, secretRef string) (*Secr
 
 // UpdateSecret updates a secret
 func (s *SecretsService) UpdateSecret(ctx context.Context, secretRef string, opt *CreateSecretOptions) (*Secret, *Response, error) {
-	path := fmt.Sprintf("secrets/%s", secretRef)
+	path := fmt.Sprintf("secrets/%s", url.PathEscape(secretRef))
 	var secret Secret
 	resp, err := s.client.Patch(ctx, path, opt, &secret)
 	if err != nil {
@@ -193,7 +194,7 @@ func (s *SecretsService) UpdateSecret(ctx context.Context, secretRef string, opt
 
 // DeleteSecret deletes a secret
 func (s *SecretsService) DeleteSecret(ctx context.Context, secretRef string) (*Response, error) {
-	path := fmt.Sprintf("secrets/%s", secretRef)
+	path := fmt.Sprintf("secrets/%s", url.PathEscape(secretRef))
 	resp, err := s.client.Delete(ctx, path, nil)
 	return resp, err
 }
@@ -305,7 +306,7 @@ func (s *GitspacesService) CreateGitspace(ctx context.Context, gitspace *CreateG
 
 // FindGitspace retrieves a specific gitspace by identifier
 func (s *GitspacesService) FindGitspace(ctx context.Context, identifier string) (*Gitspace, *Response, error) {
-	path := fmt.Sprintf("gitspaces/%s", identifier)
+	path := fmt.Sprintf("gitspaces/%s", url.PathEscape(identifier))
 	var gitspace Gitspace
 	resp, err := s.client.Get(ctx, path, &gitspace)
 	if err != nil {
@@ -316,7 +317,7 @@ func (s *GitspacesService) FindGitspace(ctx context.Context, identifier string) 
 
 // DeleteGitspace deletes a gitspace by identifier
 func (s *GitspacesService) DeleteGitspace(ctx context.Context, identifier string) (*Response, error) {
-	path := fmt.Sprintf("gitspaces/%s", identifier)
+	path := fmt.Sprintf("gitspaces/%s", url.PathEscape(identifier))
 	resp, err := s.client.Delete(ctx, path, nil)
 	return resp, err
 }
@@ -328,7 +329,7 @@ type GitspaceActionRequest struct {
 
 // ActionOnGitspace performs an action on a gitspace (start/stop)
 func (s *GitspacesService) ActionOnGitspace(ctx context.Context, identifier string, action GitspaceAction) (*Gitspace, *Response, error) {
-	path := fmt.Sprintf("gitspaces/%s/actions", identifier)
+	path := fmt.Sprintf("gitspaces/%s/actions", url.PathEscape(identifier))
 	req := &GitspaceActionRequest{Action: action}
 
 	var gitspace Gitspace
@@ -355,7 +356,7 @@ type ListGitspaceEventsOptions struct {
 
 // ListGitspaceEvents lists events for a specific gitspace
 func (s *GitspacesService) ListGitspaceEvents(ctx context.Context, identifier string, opt *ListGitspaceEventsOptions) ([]*GitspaceEvent, *Response, error) {
-	path := fmt.Sprintf("gitspaces/%s/events", identifier)
+	path := fmt.Sprintf("gitspaces/%s/events", url.PathEscape(identifier))
 	req := s.client.client.R().SetContext(ctx)
 
 	if opt != nil {
@@ -365,7 +366,8 @@ func (s *GitspacesService) ListGitspaceEvents(ctx context.Context, identifier st
 	var events []*GitspaceEvent
 	req.SetSuccessResult(&events)
 
-	resp, err := req.Get(path)
+	fullURL := s.client.buildFullURL(path)
+	resp, err := req.Get(fullURL)
 	if err != nil {
 		return nil, &Response{Response: resp}, err
 	}
@@ -443,7 +445,7 @@ type CreateInfraProviderRequest struct {
 
 // CreateInfraProvider creates a new infrastructure provider
 func (s *InfraProvidersService) CreateInfraProvider(ctx context.Context, spaceRef string, provider *CreateInfraProviderRequest) (*InfraProvider, *Response, error) {
-	path := fmt.Sprintf("spaces/%s/infra-providers", spaceRef)
+	path := fmt.Sprintf("spaces/%s/infra-providers", url.PathEscape(spaceRef))
 	var infraProvider InfraProvider
 	resp, err := s.client.Post(ctx, path, provider, &infraProvider)
 	if err != nil {
@@ -454,7 +456,7 @@ func (s *InfraProvidersService) CreateInfraProvider(ctx context.Context, spaceRe
 
 // GetInfraProvider retrieves a specific infrastructure provider by identifier
 func (s *InfraProvidersService) GetInfraProvider(ctx context.Context, spaceRef, identifier string) (*InfraProvider, *Response, error) {
-	path := fmt.Sprintf("spaces/%s/infra-providers/%s", spaceRef, identifier)
+	path := fmt.Sprintf("spaces/%s/infra-providers/%s", url.PathEscape(spaceRef), identifier)
 	var infraProvider InfraProvider
 	resp, err := s.client.Get(ctx, path, &infraProvider)
 	if err != nil {

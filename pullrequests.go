@@ -9,6 +9,7 @@ package gitness
 import (
 	"context"
 	"fmt"
+	"net/url"
 )
 
 // PullRequestsService handles communication with pull request related methods
@@ -164,7 +165,7 @@ type CreatePullRequestCommentOptions struct {
 
 // CreatePullRequest creates a new pull request
 func (s *PullRequestsService) CreatePullRequest(ctx context.Context, repoPath string, opt *CreatePullRequestOptions) (*PullRequest, *Response, error) {
-	path := fmt.Sprintf("repos/%s/pullreq", repoPath)
+	path := fmt.Sprintf("repos/%s/pullreq", url.PathEscape(repoPath))
 	var pullRequest PullRequest
 	resp, err := s.client.Post(ctx, path, opt, &pullRequest)
 	if err != nil {
@@ -175,7 +176,8 @@ func (s *PullRequestsService) CreatePullRequest(ctx context.Context, repoPath st
 
 // ListPullRequests lists pull requests for a repository
 func (s *PullRequestsService) ListPullRequests(ctx context.Context, repoPath string, opt *ListPullRequestsOptions) ([]*PullRequest, *Response, error) {
-	path := fmt.Sprintf("repos/%s/pullreq", repoPath)
+	path := fmt.Sprintf("repos/%s/pullreq", url.PathEscape(repoPath))
+	fullURL := s.client.buildFullURL(path)
 	req := s.client.client.R().SetContext(ctx)
 
 	// Add query parameters if options provided
@@ -201,7 +203,7 @@ func (s *PullRequestsService) ListPullRequests(ctx context.Context, repoPath str
 	var pullRequests []*PullRequest
 	req.SetSuccessResult(&pullRequests)
 
-	resp, err := req.Get(path)
+	resp, err := req.Get(fullURL)
 	if err != nil {
 		return nil, &Response{Response: resp}, err
 	}
@@ -219,7 +221,7 @@ func (s *PullRequestsService) ListPullRequests(ctx context.Context, repoPath str
 
 // GetPullRequest retrieves a specific pull request
 func (s *PullRequestsService) GetPullRequest(ctx context.Context, repoPath string, pullRequestNumber int64) (*PullRequest, *Response, error) {
-	path := fmt.Sprintf("repos/%s/pullreq/%d", repoPath, pullRequestNumber)
+	path := fmt.Sprintf("repos/%s/pullreq/%d", url.PathEscape(repoPath), pullRequestNumber)
 	var pullRequest PullRequest
 	resp, err := s.client.Get(ctx, path, &pullRequest)
 	if err != nil {
@@ -230,7 +232,7 @@ func (s *PullRequestsService) GetPullRequest(ctx context.Context, repoPath strin
 
 // UpdatePullRequest updates a pull request
 func (s *PullRequestsService) UpdatePullRequest(ctx context.Context, repoPath string, pullRequestNumber int64, opt *UpdatePullRequestOptions) (*PullRequest, *Response, error) {
-	path := fmt.Sprintf("repos/%s/pullreq/%d", repoPath, pullRequestNumber)
+	path := fmt.Sprintf("repos/%s/pullreq/%d", url.PathEscape(repoPath), pullRequestNumber)
 	var pullRequest PullRequest
 	resp, err := s.client.Patch(ctx, path, opt, &pullRequest)
 	if err != nil {
@@ -241,7 +243,7 @@ func (s *PullRequestsService) UpdatePullRequest(ctx context.Context, repoPath st
 
 // SetPullRequestState changes the state of a pull request (open, closed, merged)
 func (s *PullRequestsService) SetPullRequestState(ctx context.Context, repoPath string, pullRequestNumber int64, opt *StatePullRequestOptions) (*PullRequest, *Response, error) {
-	path := fmt.Sprintf("repos/%s/pullreq/%d/state", repoPath, pullRequestNumber)
+	path := fmt.Sprintf("repos/%s/pullreq/%d/state", url.PathEscape(repoPath), pullRequestNumber)
 	var pullRequest PullRequest
 	resp, err := s.client.Post(ctx, path, opt, &pullRequest)
 	if err != nil {
@@ -252,7 +254,7 @@ func (s *PullRequestsService) SetPullRequestState(ctx context.Context, repoPath 
 
 // MergePullRequest merges a pull request
 func (s *PullRequestsService) MergePullRequest(ctx context.Context, repoPath string, pullRequestNumber int64, opt *MergePullRequestOptions) (*PullRequest, *Response, error) {
-	path := fmt.Sprintf("repos/%s/pullreq/%d/merge", repoPath, pullRequestNumber)
+	path := fmt.Sprintf("repos/%s/pullreq/%d/merge", url.PathEscape(repoPath), pullRequestNumber)
 	var pullRequest PullRequest
 	resp, err := s.client.Post(ctx, path, opt, &pullRequest)
 	if err != nil {
@@ -263,7 +265,7 @@ func (s *PullRequestsService) MergePullRequest(ctx context.Context, repoPath str
 
 // ListPullRequestActivity lists activities/comments for a pull request
 func (s *PullRequestsService) ListPullRequestActivity(ctx context.Context, repoPath string, pullRequestNumber int64, opt *ListOptions) ([]*PullRequestActivity, *Response, error) {
-	path := fmt.Sprintf("repos/%s/pullreq/%d/activities", repoPath, pullRequestNumber)
+	path := fmt.Sprintf("repos/%s/pullreq/%d/activities", url.PathEscape(repoPath), pullRequestNumber)
 	var activities []*PullRequestActivity
 	resp, err := s.client.performListRequest(ctx, path, opt, &activities)
 	if err != nil {
@@ -274,7 +276,7 @@ func (s *PullRequestsService) ListPullRequestActivity(ctx context.Context, repoP
 
 // CreatePullRequestComment creates a comment on a pull request
 func (s *PullRequestsService) CreatePullRequestComment(ctx context.Context, repoPath string, pullRequestNumber int64, opt *CreatePullRequestCommentOptions) (*PullRequestActivity, *Response, error) {
-	path := fmt.Sprintf("repos/%s/pullreq/%d/comments", repoPath, pullRequestNumber)
+	path := fmt.Sprintf("repos/%s/pullreq/%d/comments", url.PathEscape(repoPath), pullRequestNumber)
 	var comment PullRequestActivity
 	resp, err := s.client.Post(ctx, path, opt, &comment)
 	if err != nil {
@@ -285,21 +287,21 @@ func (s *PullRequestsService) CreatePullRequestComment(ctx context.Context, repo
 
 // AddPullRequestReviewer adds a reviewer to a pull request
 func (s *PullRequestsService) AddPullRequestReviewer(ctx context.Context, repoPath string, pullRequestNumber int64, reviewerUID string) (*Response, error) {
-	path := fmt.Sprintf("repos/%s/pullreq/%d/reviewers/%s", repoPath, pullRequestNumber, reviewerUID)
+	path := fmt.Sprintf("repos/%s/pullreq/%d/reviewers/%s", url.PathEscape(repoPath), pullRequestNumber, reviewerUID)
 	resp, err := s.client.Put(ctx, path, nil, nil)
 	return resp, err
 }
 
 // RemovePullRequestReviewer removes a reviewer from a pull request
 func (s *PullRequestsService) RemovePullRequestReviewer(ctx context.Context, repoPath string, pullRequestNumber int64, reviewerUID string) (*Response, error) {
-	path := fmt.Sprintf("repos/%s/pullreq/%d/reviewers/%s", repoPath, pullRequestNumber, reviewerUID)
+	path := fmt.Sprintf("repos/%s/pullreq/%d/reviewers/%s", url.PathEscape(repoPath), pullRequestNumber, reviewerUID)
 	resp, err := s.client.Delete(ctx, path, nil)
 	return resp, err
 }
 
 // ListPullRequestReviewers lists reviewers for a pull request
 func (s *PullRequestsService) ListPullRequestReviewers(ctx context.Context, repoPath string, pullRequestNumber int64) ([]*Reviewer, *Response, error) {
-	path := fmt.Sprintf("repos/%s/pullreq/%d/reviewers", repoPath, pullRequestNumber)
+	path := fmt.Sprintf("repos/%s/pullreq/%d/reviewers", url.PathEscape(repoPath), pullRequestNumber)
 	var reviewers []*Reviewer
 	resp, err := s.client.Get(ctx, path, &reviewers)
 	if err != nil {
@@ -349,7 +351,7 @@ type UserGroupReviewerAddRequest struct {
 
 // ListPullRequestCombinedReviewers lists both individual and user group reviewers for a pull request
 func (s *PullRequestsService) ListPullRequestCombinedReviewers(ctx context.Context, repoPath string, pullRequestNumber int64) (*CombinedReviewers, *Response, error) {
-	path := fmt.Sprintf("repos/%s/pullreq/%d/reviewers/combined", repoPath, pullRequestNumber)
+	path := fmt.Sprintf("repos/%s/pullreq/%d/reviewers/combined", url.PathEscape(repoPath), pullRequestNumber)
 	var combinedReviewers CombinedReviewers
 	resp, err := s.client.Get(ctx, path, &combinedReviewers)
 	if err != nil {
@@ -360,7 +362,7 @@ func (s *PullRequestsService) ListPullRequestCombinedReviewers(ctx context.Conte
 
 // AddPullRequestUserGroupReviewer adds a user group reviewer to a pull request
 func (s *PullRequestsService) AddPullRequestUserGroupReviewer(ctx context.Context, repoPath string, pullRequestNumber int64, userGroupID int64) (*UserGroupReviewer, *Response, error) {
-	path := fmt.Sprintf("repos/%s/pullreq/%d/reviewers/usergroups", repoPath, pullRequestNumber)
+	path := fmt.Sprintf("repos/%s/pullreq/%d/reviewers/usergroups", url.PathEscape(repoPath), pullRequestNumber)
 	req := &UserGroupReviewerAddRequest{
 		UserGroupID: &userGroupID,
 	}
@@ -375,7 +377,7 @@ func (s *PullRequestsService) AddPullRequestUserGroupReviewer(ctx context.Contex
 
 // RemovePullRequestUserGroupReviewer removes a user group reviewer from a pull request
 func (s *PullRequestsService) RemovePullRequestUserGroupReviewer(ctx context.Context, repoPath string, pullRequestNumber int64, userGroupID int64) (*Response, error) {
-	path := fmt.Sprintf("repos/%s/pullreq/%d/reviewers/usergroups/%d", repoPath, pullRequestNumber, userGroupID)
+	path := fmt.Sprintf("repos/%s/pullreq/%d/reviewers/usergroups/%d", url.PathEscape(repoPath), pullRequestNumber, userGroupID)
 	resp, err := s.client.Delete(ctx, path, nil)
 	return resp, err
 }

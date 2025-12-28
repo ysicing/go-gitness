@@ -9,6 +9,7 @@ package gitness
 import (
 	"context"
 	"fmt"
+	"net/url"
 )
 
 // RepositoriesService handles communication with repository related methods
@@ -98,7 +99,7 @@ type ImportRepositoryOptions struct {
 
 // ImportRepository imports a repository from external source
 func (s *RepositoriesService) ImportRepository(ctx context.Context, spaceRef string, opt *ImportRepositoryOptions) (*Repository, *Response, error) {
-	path := fmt.Sprintf("spaces/%s/repos/import", spaceRef)
+	path := fmt.Sprintf("spaces/%s/repos/import", url.PathEscape(spaceRef))
 	var repository Repository
 	resp, err := s.client.Post(ctx, path, opt, &repository)
 	if err != nil {
@@ -115,7 +116,7 @@ type ListRepositoriesOptions struct {
 
 // GetRepository retrieves a repository by its path
 func (s *RepositoriesService) GetRepository(ctx context.Context, repoPath string) (*Repository, *Response, error) {
-	path := fmt.Sprintf("repos/%s", repoPath)
+	path := fmt.Sprintf("repos/%s", url.PathEscape(repoPath))
 	var repository Repository
 	resp, err := s.client.Get(ctx, path, &repository)
 	if err != nil {
@@ -126,7 +127,7 @@ func (s *RepositoriesService) GetRepository(ctx context.Context, repoPath string
 
 // CreateRepository creates a new repository
 func (s *RepositoriesService) CreateRepository(ctx context.Context, spaceRef string, opt *CreateRepositoryOptions) (*Repository, *Response, error) {
-	path := fmt.Sprintf("spaces/%s/repos", spaceRef)
+	path := fmt.Sprintf("spaces/%s/repos", url.PathEscape(spaceRef))
 	var repository Repository
 	resp, err := s.client.Post(ctx, path, opt, &repository)
 	if err != nil {
@@ -137,7 +138,7 @@ func (s *RepositoriesService) CreateRepository(ctx context.Context, spaceRef str
 
 // UpdateRepository updates a repository
 func (s *RepositoriesService) UpdateRepository(ctx context.Context, repoPath string, opt *UpdateRepositoryOptions) (*Repository, *Response, error) {
-	path := fmt.Sprintf("repos/%s", repoPath)
+	path := fmt.Sprintf("repos/%s", url.PathEscape(repoPath))
 	var repository Repository
 	resp, err := s.client.Patch(ctx, path, opt, &repository)
 	if err != nil {
@@ -153,7 +154,7 @@ type DeleteRepositoryRequest struct {
 
 // DeleteRepository deletes a repository
 func (s *RepositoriesService) DeleteRepository(ctx context.Context, repoPath string, deleteID *string) (*Response, error) {
-	path := fmt.Sprintf("repos/%s", repoPath)
+	path := fmt.Sprintf("repos/%s", url.PathEscape(repoPath))
 
 	var payload *DeleteRepositoryRequest
 	if deleteID != nil {
@@ -168,7 +169,7 @@ func (s *RepositoriesService) DeleteRepository(ctx context.Context, repoPath str
 
 // ListBranches lists repository branches
 func (s *RepositoriesService) ListBranches(ctx context.Context, repoPath string, opt *ListOptions) ([]*Branch, *Response, error) {
-	path := fmt.Sprintf("repos/%s/branches", repoPath)
+	path := fmt.Sprintf("repos/%s/branches", url.PathEscape(repoPath))
 	var branches []*Branch
 	resp, err := s.client.performListRequest(ctx, path, opt, &branches)
 	if err != nil {
@@ -179,7 +180,7 @@ func (s *RepositoriesService) ListBranches(ctx context.Context, repoPath string,
 
 // GetBranch retrieves a specific branch
 func (s *RepositoriesService) GetBranch(ctx context.Context, repoPath, branchName string) (*Branch, *Response, error) {
-	path := fmt.Sprintf("repos/%s/branches/%s", repoPath, branchName)
+	path := fmt.Sprintf("repos/%s/branches/%s", url.PathEscape(repoPath), url.PathEscape(branchName))
 	var branch Branch
 	resp, err := s.client.Get(ctx, path, &branch)
 	if err != nil {
@@ -190,7 +191,7 @@ func (s *RepositoriesService) GetBranch(ctx context.Context, repoPath, branchNam
 
 // CreateBranch creates a new branch
 func (s *RepositoriesService) CreateBranch(ctx context.Context, repoPath string, opt *CreateBranchOptions) (*Branch, *Response, error) {
-	path := fmt.Sprintf("repos/%s/branches", repoPath)
+	path := fmt.Sprintf("repos/%s/branches", url.PathEscape(repoPath))
 	var branch Branch
 	resp, err := s.client.Post(ctx, path, opt, &branch)
 	if err != nil {
@@ -207,7 +208,7 @@ type CreateBranchOptions struct {
 
 // DeleteBranch deletes a branch
 func (s *RepositoriesService) DeleteBranch(ctx context.Context, repoPath, branchName string) (*Response, error) {
-	path := fmt.Sprintf("repos/%s/branches/%s", repoPath, branchName)
+	path := fmt.Sprintf("repos/%s/branches/%s", url.PathEscape(repoPath), url.PathEscape(branchName))
 	resp, err := s.client.Delete(ctx, path, nil)
 	return resp, err
 }
@@ -231,7 +232,7 @@ type Signature struct {
 
 // ListCommits lists commits in a repository
 func (s *RepositoriesService) ListCommits(ctx context.Context, repoPath string, opt *ListCommitsOptions) ([]*Commit, *Response, error) {
-	path := fmt.Sprintf("repos/%s/commits", repoPath)
+	path := fmt.Sprintf("repos/%s/commits", url.PathEscape(repoPath))
 	req := s.client.client.R().SetContext(ctx)
 
 	// Add query parameters if options provided
@@ -260,7 +261,8 @@ func (s *RepositoriesService) ListCommits(ctx context.Context, repoPath string, 
 	var commits []*Commit
 	req.SetSuccessResult(&commits)
 
-	resp, err := req.Get(path)
+	fullURL := s.client.buildFullURL(path)
+	resp, err := req.Get(fullURL)
 	if err != nil {
 		return nil, &Response{Response: resp}, err
 	}
@@ -288,7 +290,7 @@ type ListCommitsOptions struct {
 
 // GetCommit retrieves a specific commit
 func (s *RepositoriesService) GetCommit(ctx context.Context, repoPath, commitSHA string) (*Commit, *Response, error) {
-	path := fmt.Sprintf("repos/%s/commits/%s", repoPath, commitSHA)
+	path := fmt.Sprintf("repos/%s/commits/%s", url.PathEscape(repoPath), url.PathEscape(commitSHA))
 	var commit Commit
 	resp, err := s.client.Get(ctx, path, &commit)
 	if err != nil {
@@ -309,7 +311,7 @@ type FileContent struct {
 
 // GetFileContent retrieves file content
 func (s *RepositoriesService) GetFileContent(ctx context.Context, repoPath, filePath string, opt *GetFileOptions) (*FileContent, *Response, error) {
-	path := fmt.Sprintf("repos/%s/content/%s", repoPath, filePath)
+	path := fmt.Sprintf("repos/%s/content/%s", url.PathEscape(repoPath), url.PathEscape(filePath))
 	var fileContent FileContent
 	resp, err := s.client.Get(ctx, path, &fileContent)
 	if err != nil {
@@ -336,7 +338,7 @@ type TreeNode struct {
 
 // ListPaths lists paths in a repository tree
 func (s *RepositoriesService) ListPaths(ctx context.Context, repoPath string, opt *ListPathsOptions) ([]*TreeNode, *Response, error) {
-	path := fmt.Sprintf("repos/%s/paths", repoPath)
+	path := fmt.Sprintf("repos/%s/paths", url.PathEscape(repoPath))
 	req := s.client.client.R().SetContext(ctx)
 
 	// Add specific query parameters
@@ -353,7 +355,8 @@ func (s *RepositoriesService) ListPaths(ctx context.Context, repoPath string, op
 	var nodes []*TreeNode
 	req.SetSuccessResult(&nodes)
 
-	resp, err := req.Get(path)
+	fullURL := s.client.buildFullURL(path)
+	resp, err := req.Get(fullURL)
 	if err != nil {
 		return nil, &Response{Response: resp}, err
 	}
@@ -398,7 +401,7 @@ type ListTagsOptions struct {
 
 // ListTags lists repository tags
 func (s *RepositoriesService) ListTags(ctx context.Context, repoPath string, opt *ListTagsOptions) ([]*Tag, *Response, error) {
-	path := fmt.Sprintf("repos/%s/tags", repoPath)
+	path := fmt.Sprintf("repos/%s/tags", url.PathEscape(repoPath))
 	req := s.client.client.R().SetContext(ctx)
 
 	if opt != nil {
@@ -420,7 +423,8 @@ func (s *RepositoriesService) ListTags(ctx context.Context, repoPath string, opt
 	var tags []*Tag
 	req.SetSuccessResult(&tags)
 
-	resp, err := req.Get(path)
+	fullURL := s.client.buildFullURL(path)
+	resp, err := req.Get(fullURL)
 	if err != nil {
 		return nil, &Response{Response: resp}, err
 	}
@@ -475,7 +479,7 @@ type Violation struct {
 
 // CreateTag creates a new tag
 func (s *RepositoriesService) CreateTag(ctx context.Context, repoPath string, opt *CreateTagOptions) (*CreateTagOutput, *Response, error) {
-	path := fmt.Sprintf("repos/%s/tags", repoPath)
+	path := fmt.Sprintf("repos/%s/tags", url.PathEscape(repoPath))
 	var output CreateTagOutput
 	resp, err := s.client.Post(ctx, path, opt, &output)
 	if err != nil {
@@ -492,7 +496,7 @@ type DeleteTagOutput struct {
 
 // DeleteTag deletes a tag
 func (s *RepositoriesService) DeleteTag(ctx context.Context, repoPath, tagName string) (*DeleteTagOutput, *Response, error) {
-	path := fmt.Sprintf("repos/%s/tags/%s", repoPath, tagName)
+	path := fmt.Sprintf("repos/%s/tags/%s", url.PathEscape(repoPath), url.PathEscape(tagName))
 	var output DeleteTagOutput
 	resp, err := s.client.DeleteWithResponse(ctx, path, nil, &output)
 	if err != nil {
@@ -538,7 +542,7 @@ type CommitFilesResponse struct {
 
 // CommitFiles commits files to a repository
 func (s *RepositoriesService) CommitFiles(ctx context.Context, repoPath string, opt *CommitFilesOptions) (*CommitFilesResponse, *Response, error) {
-	path := fmt.Sprintf("repos/%s/commits", repoPath)
+	path := fmt.Sprintf("repos/%s/commits", url.PathEscape(repoPath))
 	var output CommitFilesResponse
 	resp, err := s.client.Post(ctx, path, opt, &output)
 	if err != nil {
@@ -554,14 +558,15 @@ type GetCommitDiffOptions struct {
 
 // GetCommitDiff retrieves the diff for a specific commit
 func (s *RepositoriesService) GetCommitDiff(ctx context.Context, repoPath, commitSHA string, opt *GetCommitDiffOptions) (string, *Response, error) {
-	path := fmt.Sprintf("repos/%s/commits/%s/diff", repoPath, commitSHA)
+	path := fmt.Sprintf("repos/%s/commits/%s/diff", url.PathEscape(repoPath), url.PathEscape(commitSHA))
 	req := s.client.client.R().SetContext(ctx)
 
 	if opt != nil && opt.IgnoreWhitespace != nil {
 		req.SetQueryParam("ignore_whitespace", fmt.Sprintf("%t", *opt.IgnoreWhitespace))
 	}
 
-	resp, err := req.Get(path)
+	fullURL := s.client.buildFullURL(path)
+	resp, err := req.Get(fullURL)
 	if err != nil {
 		return "", &Response{Response: resp}, err
 	}
@@ -593,7 +598,7 @@ type CalculateCommitDivergenceOptions struct {
 
 // CalculateCommitDivergence calculates the divergence between commits
 func (s *RepositoriesService) CalculateCommitDivergence(ctx context.Context, repoPath string, opt *CalculateCommitDivergenceOptions) ([]*CommitDivergence, *Response, error) {
-	path := fmt.Sprintf("repos/%s/commits/calculate-divergence", repoPath)
+	path := fmt.Sprintf("repos/%s/commits/calculate-divergence", url.PathEscape(repoPath))
 	var divergences []*CommitDivergence
 	resp, err := s.client.Post(ctx, path, opt, &divergences)
 	if err != nil {

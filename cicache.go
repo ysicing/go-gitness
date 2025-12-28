@@ -10,6 +10,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net/url"
 )
 
 // CiCacheService handles communication with CI cache related methods
@@ -35,7 +36,7 @@ type UploadCiCacheRequest struct {
 
 // UploadCiCache uploads a CI cache entry
 func (s *CiCacheService) UploadCiCache(ctx context.Context, key string, version int, data io.Reader) (*CiCacheEntry, *Response, error) {
-	path := fmt.Sprintf("ci/cache/%s", key)
+	path := fmt.Sprintf("ci/cache/%s", url.PathEscape(key))
 
 	req := s.client.client.R().SetContext(ctx)
 	if version > 0 {
@@ -49,7 +50,8 @@ func (s *CiCacheService) UploadCiCache(ctx context.Context, key string, version 
 	var cacheEntry CiCacheEntry
 	req.SetSuccessResult(&cacheEntry)
 
-	resp, err := req.Put(path)
+	fullURL := s.client.buildFullURL(path)
+	resp, err := req.Put(fullURL)
 	if err != nil {
 		return nil, &Response{Response: resp}, err
 	}
@@ -68,14 +70,15 @@ type GetCiCacheOptions struct {
 
 // GetCiCache retrieves a CI cache entry by key
 func (s *CiCacheService) GetCiCache(ctx context.Context, key string, opt *GetCiCacheOptions) (io.ReadCloser, *Response, error) {
-	path := fmt.Sprintf("ci/cache/%s", key)
+	path := fmt.Sprintf("ci/cache/%s", url.PathEscape(key))
 	req := s.client.client.R().SetContext(ctx)
 
 	if opt != nil && opt.Version != nil {
 		req.SetQueryParam("version", fmt.Sprintf("%d", *opt.Version))
 	}
 
-	resp, err := req.Get(path)
+	fullURL := s.client.buildFullURL(path)
+	resp, err := req.Get(fullURL)
 	if err != nil {
 		return nil, &Response{Response: resp}, err
 	}
@@ -124,7 +127,7 @@ func (s *CiCacheService) ListCiCache(ctx context.Context, opt *ListCiCacheOption
 
 // DeleteCiCache deletes a CI cache entry by key
 func (s *CiCacheService) DeleteCiCache(ctx context.Context, key string) (*Response, error) {
-	path := fmt.Sprintf("ci/cache/%s", key)
+	path := fmt.Sprintf("ci/cache/%s", url.PathEscape(key))
 	resp, err := s.client.Delete(ctx, path, nil)
 	return resp, err
 }

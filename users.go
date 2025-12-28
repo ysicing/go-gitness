@@ -9,6 +9,7 @@ package gitness
 import (
 	"context"
 	"fmt"
+	"net/url"
 )
 
 // UsersService handles communication with user related methods
@@ -88,7 +89,7 @@ func (s *UsersService) GetCurrentUser(ctx context.Context) (*User, *Response, er
 
 // GetUser retrieves a user by UID
 func (s *UsersService) GetUser(ctx context.Context, userUID string) (*User, *Response, error) {
-	path := fmt.Sprintf("users/%s", userUID)
+	path := fmt.Sprintf("users/%s", url.PathEscape(userUID))
 	var user User
 	resp, err := s.client.Get(ctx, path, &user)
 	if err != nil {
@@ -140,7 +141,7 @@ func (s *UsersService) CreateUserKey(ctx context.Context, opt *CreatePublicKeyOp
 
 // GetUserKey retrieves a specific public key
 func (s *UsersService) GetUserKey(ctx context.Context, keyID string) (*PublicKey, *Response, error) {
-	path := fmt.Sprintf("user/keys/%s", keyID)
+	path := fmt.Sprintf("user/keys/%s", url.PathEscape(keyID))
 	var key PublicKey
 	resp, err := s.client.Get(ctx, path, &key)
 	if err != nil {
@@ -151,7 +152,7 @@ func (s *UsersService) GetUserKey(ctx context.Context, keyID string) (*PublicKey
 
 // DeleteUserKey deletes a public key
 func (s *UsersService) DeleteUserKey(ctx context.Context, keyID string) (*Response, error) {
-	path := fmt.Sprintf("user/keys/%s", keyID)
+	path := fmt.Sprintf("user/keys/%s", url.PathEscape(keyID))
 	resp, err := s.client.Delete(ctx, path, nil)
 	return resp, err
 }
@@ -195,7 +196,7 @@ func (s *UsersService) CreateUserToken(ctx context.Context, opt *CreateTokenOpti
 
 // DeleteUserToken deletes a personal access token
 func (s *UsersService) DeleteUserToken(ctx context.Context, tokenID string) (*Response, error) {
-	path := fmt.Sprintf("user/tokens/%s", tokenID)
+	path := fmt.Sprintf("user/tokens/%s", url.PathEscape(tokenID))
 	resp, err := s.client.Delete(ctx, path, nil)
 	return resp, err
 }

@@ -188,10 +188,11 @@ func (e *ErrorResponse) Error() string {
 
 // Get performs a GET request
 func (c *Client) Get(ctx context.Context, path string, result any) (*Response, error) {
+	fullURL := c.buildFullURL(path)
 	resp, err := c.client.R().
 		SetContext(ctx).
 		SetSuccessResult(result).
-		Get(path)
+		Get(fullURL)
 
 	if err != nil {
 		return nil, err
@@ -210,6 +211,7 @@ func (c *Client) Get(ctx context.Context, path string, result any) (*Response, e
 
 // Post performs a POST request
 func (c *Client) Post(ctx context.Context, path string, body any, result any) (*Response, error) {
+	fullURL := c.buildFullURL(path)
 	req := c.client.R().SetContext(ctx)
 
 	if body != nil {
@@ -220,7 +222,7 @@ func (c *Client) Post(ctx context.Context, path string, body any, result any) (*
 		req.SetSuccessResult(result)
 	}
 
-	resp, err := req.Post(path)
+	resp, err := req.Post(fullURL)
 	if err != nil {
 		return nil, err
 	}
@@ -234,6 +236,7 @@ func (c *Client) Post(ctx context.Context, path string, body any, result any) (*
 
 // Put performs a PUT request
 func (c *Client) Put(ctx context.Context, path string, body any, result any) (*Response, error) {
+	fullURL := c.buildFullURL(path)
 	req := c.client.R().SetContext(ctx)
 
 	if body != nil {
@@ -244,7 +247,7 @@ func (c *Client) Put(ctx context.Context, path string, body any, result any) (*R
 		req.SetSuccessResult(result)
 	}
 
-	resp, err := req.Put(path)
+	resp, err := req.Put(fullURL)
 	if err != nil {
 		return nil, err
 	}
@@ -258,6 +261,7 @@ func (c *Client) Put(ctx context.Context, path string, body any, result any) (*R
 
 // Patch performs a PATCH request
 func (c *Client) Patch(ctx context.Context, path string, body any, result any) (*Response, error) {
+	fullURL := c.buildFullURL(path)
 	req := c.client.R().SetContext(ctx)
 
 	if body != nil {
@@ -268,7 +272,7 @@ func (c *Client) Patch(ctx context.Context, path string, body any, result any) (
 		req.SetSuccessResult(result)
 	}
 
-	resp, err := req.Patch(path)
+	resp, err := req.Patch(fullURL)
 	if err != nil {
 		return nil, err
 	}
@@ -282,13 +286,14 @@ func (c *Client) Patch(ctx context.Context, path string, body any, result any) (
 
 // Delete performs a DELETE request
 func (c *Client) Delete(ctx context.Context, path string, body any) (*Response, error) {
+	fullURL := c.buildFullURL(path)
 	req := c.client.R().SetContext(ctx)
 
 	if body != nil {
 		req.SetBodyJsonMarshal(body)
 	}
 
-	resp, err := req.Delete(path)
+	resp, err := req.Delete(fullURL)
 	if err != nil {
 		return nil, err
 	}
@@ -302,6 +307,7 @@ func (c *Client) Delete(ctx context.Context, path string, body any) (*Response, 
 
 // DeleteWithResponse performs a DELETE request and returns the response body
 func (c *Client) DeleteWithResponse(ctx context.Context, path string, body any, result any) (*Response, error) {
+	fullURL := c.buildFullURL(path)
 	req := c.client.R().SetContext(ctx)
 
 	if body != nil {
@@ -312,7 +318,7 @@ func (c *Client) DeleteWithResponse(ctx context.Context, path string, body any, 
 		req.SetSuccessResult(result)
 	}
 
-	resp, err := req.Delete(path)
+	resp, err := req.Delete(fullURL)
 	if err != nil {
 		return nil, err
 	}
@@ -350,6 +356,13 @@ func (c *Client) checkResponse(r *req.Response) error {
 	return errorResponse
 }
 
+// buildFullURL constructs a full URL from the base URL and path, preserving URL encoding
+func (c *Client) buildFullURL(path string) string {
+	baseURL, _ := url.Parse(c.baseURL + apiVersionPath + "/")
+	fullURL := baseURL.ResolveReference(&url.URL{Path: path})
+	return fullURL.String()
+}
+
 // buildQueryParams is a helper function to build query parameters from ListOptions
 func buildQueryParams(req *req.Request, opt *ListOptions) {
 	if opt == nil {
@@ -375,13 +388,14 @@ func buildQueryParams(req *req.Request, opt *ListOptions) {
 
 // performListRequest is a helper function for making list requests with pagination support
 func (c *Client) performListRequest(ctx context.Context, path string, opt *ListOptions, result any) (*Response, error) {
+	fullURL := c.buildFullURL(path)
 	req := c.client.R().SetContext(ctx)
 	req.SetSuccessResult(result)
 
 	// Add common query parameters
 	buildQueryParams(req, opt)
 
-	resp, err := req.Get(path)
+	resp, err := req.Get(fullURL)
 	if err != nil {
 		return &Response{Response: resp}, err
 	}

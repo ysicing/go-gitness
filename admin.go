@@ -9,6 +9,7 @@ package gitness
 import (
 	"context"
 	"fmt"
+	"net/url"
 )
 
 // AdminService handles communication with admin related methods
@@ -178,7 +179,7 @@ func (s *AdminService) ListUsers(ctx context.Context, opt *ListUsersOptions) ([]
 
 // GetUser retrieves a specific user by UID
 func (s *AdminService) GetUser(ctx context.Context, userUID string) (*User, *Response, error) {
-	path := fmt.Sprintf("admin/users/%s", userUID)
+	path := fmt.Sprintf("admin/users/%s", url.PathEscape(userUID))
 	var user User
 	resp, err := s.client.Get(ctx, path, &user)
 	if err != nil {
@@ -189,7 +190,7 @@ func (s *AdminService) GetUser(ctx context.Context, userUID string) (*User, *Res
 
 // UpdateUserAdminStatus updates user's admin status
 func (s *AdminService) UpdateUserAdminStatus(ctx context.Context, userUID string, admin bool) (*User, *Response, error) {
-	path := fmt.Sprintf("admin/users/%s/admin", userUID)
+	path := fmt.Sprintf("admin/users/%s/admin", url.PathEscape(userUID))
 	payload := map[string]bool{"admin": admin}
 
 	var user User
@@ -202,7 +203,7 @@ func (s *AdminService) UpdateUserAdminStatus(ctx context.Context, userUID string
 
 // UpdateUserBlockedStatus updates user's blocked status
 func (s *AdminService) UpdateUserBlockedStatus(ctx context.Context, userUID string, blocked bool) (*User, *Response, error) {
-	path := fmt.Sprintf("admin/users/%s/blocked", userUID)
+	path := fmt.Sprintf("admin/users/%s/blocked", url.PathEscape(userUID))
 	payload := map[string]bool{"blocked": blocked}
 
 	var user User
@@ -240,7 +241,7 @@ type UpdateUserRequest struct {
 
 // UpdateUser updates user information
 func (s *AdminService) UpdateUser(ctx context.Context, userUID string, user *UpdateUserRequest) (*User, *Response, error) {
-	path := fmt.Sprintf("admin/users/%s", userUID)
+	path := fmt.Sprintf("admin/users/%s", url.PathEscape(userUID))
 	var updatedUser User
 	resp, err := s.client.Patch(ctx, path, user, &updatedUser)
 	if err != nil {
@@ -251,7 +252,7 @@ func (s *AdminService) UpdateUser(ctx context.Context, userUID string, user *Upd
 
 // DeleteUser deletes a user by UID
 func (s *AdminService) DeleteUser(ctx context.Context, userUID string) (*Response, error) {
-	path := fmt.Sprintf("admin/users/%s", userUID)
+	path := fmt.Sprintf("admin/users/%s", url.PathEscape(userUID))
 	resp, err := s.client.Delete(ctx, path, nil)
 	return resp, err
 }

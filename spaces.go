@@ -9,6 +9,7 @@ package gitness
 import (
 	"context"
 	"fmt"
+	"net/url"
 )
 
 // SpacesService handles communication with space related methods
@@ -51,7 +52,7 @@ type ListSpacesOptions struct {
 
 // GetSpace retrieves a space by its reference
 func (s *SpacesService) GetSpace(ctx context.Context, spaceRef string) (*Space, *Response, error) {
-	path := fmt.Sprintf("spaces/%s", spaceRef)
+	path := fmt.Sprintf("spaces/%s", url.PathEscape(spaceRef))
 	var space Space
 	resp, err := s.client.Get(ctx, path, &space)
 	if err != nil {
@@ -104,7 +105,7 @@ func (s *SpacesService) CreateSpace(ctx context.Context, opt *CreateSpaceOptions
 
 // UpdateSpace updates a space
 func (s *SpacesService) UpdateSpace(ctx context.Context, spaceRef string, opt *UpdateSpaceOptions) (*Space, *Response, error) {
-	path := fmt.Sprintf("spaces/%s", spaceRef)
+	path := fmt.Sprintf("spaces/%s", url.PathEscape(spaceRef))
 	var space Space
 	resp, err := s.client.Patch(ctx, path, opt, &space)
 	if err != nil {
@@ -120,7 +121,7 @@ type DeleteSpaceRequest struct {
 
 // DeleteSpace deletes a space
 func (s *SpacesService) DeleteSpace(ctx context.Context, spaceRef string, deleteID *string) (*Response, error) {
-	path := fmt.Sprintf("spaces/%s", spaceRef)
+	path := fmt.Sprintf("spaces/%s", url.PathEscape(spaceRef))
 
 	var payload *DeleteSpaceRequest
 	if deleteID != nil {
@@ -135,7 +136,7 @@ func (s *SpacesService) DeleteSpace(ctx context.Context, spaceRef string, delete
 
 // ListRepositories lists repositories in a space
 func (s *SpacesService) ListRepositories(ctx context.Context, spaceRef string, opt *ListRepositoriesOptions) ([]*Repository, *Response, error) {
-	path := fmt.Sprintf("spaces/%s/repos", spaceRef)
+	path := fmt.Sprintf("spaces/%s/repos", url.PathEscape(spaceRef))
 	var repositories []*Repository
 
 	req := s.client.client.R().SetContext(ctx)
@@ -157,7 +158,8 @@ func (s *SpacesService) ListRepositories(ctx context.Context, spaceRef string, o
 
 	req.SetSuccessResult(&repositories)
 
-	resp, err := req.Get(path)
+	fullURL := s.client.buildFullURL(path)
+	resp, err := req.Get(fullURL)
 	if err != nil {
 		return nil, &Response{Response: resp}, err
 	}

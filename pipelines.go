@@ -9,6 +9,7 @@ package gitness
 import (
 	"context"
 	"fmt"
+	"net/url"
 )
 
 // PipelinesService handles communication with pipeline related methods
@@ -158,7 +159,7 @@ type LogLine struct {
 
 // ListPipelines lists pipelines for a repository
 func (s *PipelinesService) ListPipelines(ctx context.Context, repoPath string, opt *ListOptions) ([]*Pipeline, *Response, error) {
-	path := fmt.Sprintf("repos/%s/pipelines", repoPath)
+	path := fmt.Sprintf("repos/%s/pipelines", url.PathEscape(repoPath))
 	var pipelines []*Pipeline
 	resp, err := s.client.performListRequest(ctx, path, opt, &pipelines)
 	if err != nil {
@@ -169,7 +170,7 @@ func (s *PipelinesService) ListPipelines(ctx context.Context, repoPath string, o
 
 // CreatePipeline creates a new pipeline
 func (s *PipelinesService) CreatePipeline(ctx context.Context, repoPath string, opt *CreatePipelineOptions) (*Pipeline, *Response, error) {
-	path := fmt.Sprintf("repos/%s/pipelines", repoPath)
+	path := fmt.Sprintf("repos/%s/pipelines", url.PathEscape(repoPath))
 	var pipeline Pipeline
 	resp, err := s.client.Post(ctx, path, opt, &pipeline)
 	if err != nil {
@@ -180,7 +181,7 @@ func (s *PipelinesService) CreatePipeline(ctx context.Context, repoPath string, 
 
 // GetPipeline retrieves a specific pipeline
 func (s *PipelinesService) GetPipeline(ctx context.Context, repoPath, pipelineID string) (*Pipeline, *Response, error) {
-	path := fmt.Sprintf("repos/%s/pipelines/%s", repoPath, pipelineID)
+	path := fmt.Sprintf("repos/%s/pipelines/%s", url.PathEscape(repoPath), pipelineID)
 	var pipeline Pipeline
 	resp, err := s.client.Get(ctx, path, &pipeline)
 	if err != nil {
@@ -191,7 +192,7 @@ func (s *PipelinesService) GetPipeline(ctx context.Context, repoPath, pipelineID
 
 // UpdatePipeline updates a pipeline
 func (s *PipelinesService) UpdatePipeline(ctx context.Context, repoPath, pipelineID string, opt *UpdatePipelineOptions) (*Pipeline, *Response, error) {
-	path := fmt.Sprintf("repos/%s/pipelines/%s", repoPath, pipelineID)
+	path := fmt.Sprintf("repos/%s/pipelines/%s", url.PathEscape(repoPath), pipelineID)
 	var pipeline Pipeline
 	resp, err := s.client.Patch(ctx, path, opt, &pipeline)
 	if err != nil {
@@ -202,14 +203,14 @@ func (s *PipelinesService) UpdatePipeline(ctx context.Context, repoPath, pipelin
 
 // DeletePipeline deletes a pipeline
 func (s *PipelinesService) DeletePipeline(ctx context.Context, repoPath, pipelineID string) (*Response, error) {
-	path := fmt.Sprintf("repos/%s/pipelines/%s", repoPath, pipelineID)
+	path := fmt.Sprintf("repos/%s/pipelines/%s", url.PathEscape(repoPath), pipelineID)
 	resp, err := s.client.Delete(ctx, path, nil)
 	return resp, err
 }
 
 // ListPipelineExecutions lists executions for a pipeline
 func (s *PipelinesService) ListPipelineExecutions(ctx context.Context, repoPath, pipelineID string, opt *ListPipelineExecutionsOptions) ([]*PipelineExecution, *Response, error) {
-	path := fmt.Sprintf("repos/%s/pipelines/%s/executions", repoPath, pipelineID)
+	path := fmt.Sprintf("repos/%s/pipelines/%s/executions", url.PathEscape(repoPath), pipelineID)
 	req := s.client.client.R().SetContext(ctx)
 
 	// Add query parameters if options provided
@@ -224,7 +225,8 @@ func (s *PipelinesService) ListPipelineExecutions(ctx context.Context, repoPath,
 	var executions []*PipelineExecution
 	req.SetSuccessResult(&executions)
 
-	resp, err := req.Get(path)
+	fullURL := s.client.buildFullURL(path)
+	resp, err := req.Get(fullURL)
 	if err != nil {
 		return nil, &Response{Response: resp}, err
 	}
@@ -241,7 +243,7 @@ func (s *PipelinesService) ListPipelineExecutions(ctx context.Context, repoPath,
 
 // CreateExecution creates/triggers a new pipeline execution
 func (s *PipelinesService) CreateExecution(ctx context.Context, repoPath, pipelineID string, branch *string) (*PipelineExecution, *Response, error) {
-	path := fmt.Sprintf("repos/%s/pipelines/%s/executions", repoPath, pipelineID)
+	path := fmt.Sprintf("repos/%s/pipelines/%s/executions", url.PathEscape(repoPath), pipelineID)
 	req := s.client.client.R().SetContext(ctx)
 
 	if branch != nil {
@@ -251,7 +253,8 @@ func (s *PipelinesService) CreateExecution(ctx context.Context, repoPath, pipeli
 	var execution PipelineExecution
 	req.SetSuccessResult(&execution)
 
-	resp, err := req.Post(path)
+	fullURL := s.client.buildFullURL(path)
+	resp, err := req.Post(fullURL)
 	if err != nil {
 		return nil, &Response{Response: resp}, err
 	}
@@ -265,7 +268,7 @@ func (s *PipelinesService) CreateExecution(ctx context.Context, repoPath, pipeli
 
 // GetPipelineExecution retrieves a specific pipeline execution
 func (s *PipelinesService) GetPipelineExecution(ctx context.Context, repoPath, pipelineID string, executionNumber int64) (*PipelineExecution, *Response, error) {
-	path := fmt.Sprintf("repos/%s/pipelines/%s/executions/%d", repoPath, pipelineID, executionNumber)
+	path := fmt.Sprintf("repos/%s/pipelines/%s/executions/%d", url.PathEscape(repoPath), pipelineID, executionNumber)
 	var execution PipelineExecution
 	resp, err := s.client.Get(ctx, path, &execution)
 	if err != nil {
@@ -276,21 +279,21 @@ func (s *PipelinesService) GetPipelineExecution(ctx context.Context, repoPath, p
 
 // DeleteExecution deletes a pipeline execution
 func (s *PipelinesService) DeleteExecution(ctx context.Context, repoPath, pipelineID string, executionNumber int64) (*Response, error) {
-	path := fmt.Sprintf("repos/%s/pipelines/%s/executions/%d", repoPath, pipelineID, executionNumber)
+	path := fmt.Sprintf("repos/%s/pipelines/%s/executions/%d", url.PathEscape(repoPath), pipelineID, executionNumber)
 	resp, err := s.client.Delete(ctx, path, nil)
 	return resp, err
 }
 
 // CancelPipelineExecution cancels a pipeline execution
 func (s *PipelinesService) CancelPipelineExecution(ctx context.Context, repoPath, pipelineID string, executionNumber int64) (*Response, error) {
-	path := fmt.Sprintf("repos/%s/pipelines/%s/executions/%d/cancel", repoPath, pipelineID, executionNumber)
+	path := fmt.Sprintf("repos/%s/pipelines/%s/executions/%d/cancel", url.PathEscape(repoPath), pipelineID, executionNumber)
 	resp, err := s.client.Post(ctx, path, nil, nil)
 	return resp, err
 }
 
 // RetryPipelineExecution retries a pipeline execution
 func (s *PipelinesService) RetryPipelineExecution(ctx context.Context, repoPath, pipelineID string, executionNumber int64) (*PipelineExecution, *Response, error) {
-	path := fmt.Sprintf("repos/%s/pipelines/%s/executions/%d/retry", repoPath, pipelineID, executionNumber)
+	path := fmt.Sprintf("repos/%s/pipelines/%s/executions/%d/retry", url.PathEscape(repoPath), pipelineID, executionNumber)
 	var execution PipelineExecution
 	resp, err := s.client.Post(ctx, path, nil, &execution)
 	if err != nil {
@@ -301,7 +304,7 @@ func (s *PipelinesService) RetryPipelineExecution(ctx context.Context, repoPath,
 
 // ListPipelineTriggers lists triggers for a pipeline
 func (s *PipelinesService) ListPipelineTriggers(ctx context.Context, repoPath, pipelineID string, opt *ListOptions) ([]*PipelineTrigger, *Response, error) {
-	path := fmt.Sprintf("repos/%s/pipelines/%s/triggers", repoPath, pipelineID)
+	path := fmt.Sprintf("repos/%s/pipelines/%s/triggers", url.PathEscape(repoPath), pipelineID)
 	var triggers []*PipelineTrigger
 	resp, err := s.client.performListRequest(ctx, path, opt, &triggers)
 	if err != nil {
@@ -312,7 +315,7 @@ func (s *PipelinesService) ListPipelineTriggers(ctx context.Context, repoPath, p
 
 // CreatePipelineTrigger creates a trigger for a pipeline
 func (s *PipelinesService) CreatePipelineTrigger(ctx context.Context, repoPath, pipelineID string, opt *CreatePipelineTriggerOptions) (*PipelineTrigger, *Response, error) {
-	path := fmt.Sprintf("repos/%s/pipelines/%s/triggers", repoPath, pipelineID)
+	path := fmt.Sprintf("repos/%s/pipelines/%s/triggers", url.PathEscape(repoPath), pipelineID)
 	var trigger PipelineTrigger
 	resp, err := s.client.Post(ctx, path, opt, &trigger)
 	if err != nil {
@@ -323,7 +326,7 @@ func (s *PipelinesService) CreatePipelineTrigger(ctx context.Context, repoPath, 
 
 // GetPipelineTrigger retrieves a specific pipeline trigger
 func (s *PipelinesService) GetPipelineTrigger(ctx context.Context, repoPath, pipelineID, triggerID string) (*PipelineTrigger, *Response, error) {
-	path := fmt.Sprintf("repos/%s/pipelines/%s/triggers/%s", repoPath, pipelineID, triggerID)
+	path := fmt.Sprintf("repos/%s/pipelines/%s/triggers/%s", url.PathEscape(repoPath), pipelineID, triggerID)
 	var trigger PipelineTrigger
 	resp, err := s.client.Get(ctx, path, &trigger)
 	if err != nil {
@@ -334,7 +337,7 @@ func (s *PipelinesService) GetPipelineTrigger(ctx context.Context, repoPath, pip
 
 // UpdatePipelineTrigger updates a pipeline trigger
 func (s *PipelinesService) UpdatePipelineTrigger(ctx context.Context, repoPath, pipelineID, triggerID string, opt *UpdatePipelineTriggerOptions) (*PipelineTrigger, *Response, error) {
-	path := fmt.Sprintf("repos/%s/pipelines/%s/triggers/%s", repoPath, pipelineID, triggerID)
+	path := fmt.Sprintf("repos/%s/pipelines/%s/triggers/%s", url.PathEscape(repoPath), pipelineID, triggerID)
 	var trigger PipelineTrigger
 	resp, err := s.client.Patch(ctx, path, opt, &trigger)
 	if err != nil {
@@ -345,14 +348,14 @@ func (s *PipelinesService) UpdatePipelineTrigger(ctx context.Context, repoPath, 
 
 // DeletePipelineTrigger deletes a pipeline trigger
 func (s *PipelinesService) DeletePipelineTrigger(ctx context.Context, repoPath, pipelineID, triggerID string) (*Response, error) {
-	path := fmt.Sprintf("repos/%s/pipelines/%s/triggers/%s", repoPath, pipelineID, triggerID)
+	path := fmt.Sprintf("repos/%s/pipelines/%s/triggers/%s", url.PathEscape(repoPath), pipelineID, triggerID)
 	resp, err := s.client.Delete(ctx, path, nil)
 	return resp, err
 }
 
 // ViewExecutionLogs retrieves logs for a specific step in an execution
 func (s *PipelinesService) ViewExecutionLogs(ctx context.Context, repoPath, pipelineID string, executionNumber, stageNumber, stepNumber int64) ([]*LogLine, *Response, error) {
-	path := fmt.Sprintf("repos/%s/pipelines/%s/executions/%d/logs/%d/%d", repoPath, pipelineID, executionNumber, stageNumber, stepNumber)
+	path := fmt.Sprintf("repos/%s/pipelines/%s/executions/%d/logs/%d/%d", url.PathEscape(repoPath), pipelineID, executionNumber, stageNumber, stepNumber)
 	var logs []*LogLine
 	resp, err := s.client.Get(ctx, path, &logs)
 	if err != nil {

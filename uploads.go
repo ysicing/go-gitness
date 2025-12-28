@@ -9,6 +9,7 @@ package gitness
 import (
 	"context"
 	"fmt"
+	"net/url"
 )
 
 // UploadService handles communication with upload related methods
@@ -33,7 +34,7 @@ type CreateUploadRequest struct {
 
 // CreateUpload creates an upload session
 func (s *UploadService) CreateUpload(ctx context.Context, repoPath string, fileName string, fileSize int64) (*Upload, *Response, error) {
-	path := fmt.Sprintf("repos/%s/uploads", repoPath)
+	path := fmt.Sprintf("repos/%s/uploads", url.PathEscape(repoPath))
 
 	payload := &CreateUploadRequest{
 		FileName: &fileName,
@@ -50,7 +51,7 @@ func (s *UploadService) CreateUpload(ctx context.Context, repoPath string, fileN
 
 // GetUpload retrieves upload information
 func (s *UploadService) GetUpload(ctx context.Context, repoPath, fileRef string) (*Upload, *Response, error) {
-	path := fmt.Sprintf("repos/%s/uploads/%s", repoPath, fileRef)
+	path := fmt.Sprintf("repos/%s/uploads/%s", url.PathEscape(repoPath), fileRef)
 	var upload Upload
 	resp, err := s.client.Get(ctx, path, &upload)
 	if err != nil {

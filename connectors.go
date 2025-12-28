@@ -9,6 +9,7 @@ package gitness
 import (
 	"context"
 	"fmt"
+	"net/url"
 )
 
 // ConnectorsService handles communication with connector related methods
@@ -97,7 +98,7 @@ func (s *ConnectorsService) ListConnectors(ctx context.Context, opt *ListOptions
 
 // GetConnector retrieves a specific connector by identifier
 func (s *ConnectorsService) GetConnector(ctx context.Context, connectorRef string) (*Connector, *Response, error) {
-	path := fmt.Sprintf("connectors/%s", connectorRef)
+	path := fmt.Sprintf("connectors/%s", url.PathEscape(connectorRef))
 	var connector Connector
 	resp, err := s.client.Get(ctx, path, &connector)
 	if err != nil {
@@ -118,7 +119,7 @@ func (s *ConnectorsService) CreateConnector(ctx context.Context, opt *CreateConn
 
 // UpdateConnector updates an existing connector
 func (s *ConnectorsService) UpdateConnector(ctx context.Context, connectorRef string, opt *UpdateConnectorOptions) (*Connector, *Response, error) {
-	path := fmt.Sprintf("connectors/%s", connectorRef)
+	path := fmt.Sprintf("connectors/%s", url.PathEscape(connectorRef))
 	var connector Connector
 	resp, err := s.client.Patch(ctx, path, opt, &connector)
 	if err != nil {
@@ -129,7 +130,7 @@ func (s *ConnectorsService) UpdateConnector(ctx context.Context, connectorRef st
 
 // DeleteConnector deletes a connector
 func (s *ConnectorsService) DeleteConnector(ctx context.Context, connectorRef string) (*Response, error) {
-	path := fmt.Sprintf("connectors/%s", connectorRef)
+	path := fmt.Sprintf("connectors/%s", url.PathEscape(connectorRef))
 	resp, err := s.client.Delete(ctx, path, nil)
 	return resp, err
 }

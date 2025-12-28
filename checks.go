@@ -9,6 +9,7 @@ package gitness
 import (
 	"context"
 	"fmt"
+	"net/url"
 )
 
 // ChecksService handles communication with check related methods
@@ -61,7 +62,7 @@ type ListChecksOptions struct {
 
 // CreateCheck creates a check for a commit
 func (s *ChecksService) CreateCheck(ctx context.Context, repoPath, commitSHA string, opt *CreateCheckOptions) (*Check, *Response, error) {
-	path := fmt.Sprintf("repos/%s/commits/%s/checks", repoPath, commitSHA)
+	path := fmt.Sprintf("repos/%s/commits/%s/checks", url.PathEscape(repoPath), commitSHA)
 	var check Check
 	resp, err := s.client.Post(ctx, path, opt, &check)
 	if err != nil {
@@ -72,7 +73,7 @@ func (s *ChecksService) CreateCheck(ctx context.Context, repoPath, commitSHA str
 
 // UpdateCheck updates a check
 func (s *ChecksService) UpdateCheck(ctx context.Context, repoPath, commitSHA, checkIdentifier string, opt *UpdateCheckOptions) (*Check, *Response, error) {
-	path := fmt.Sprintf("repos/%s/commits/%s/checks/%s", repoPath, commitSHA, checkIdentifier)
+	path := fmt.Sprintf("repos/%s/commits/%s/checks/%s", url.PathEscape(repoPath), url.PathEscape(commitSHA), url.PathEscape(checkIdentifier))
 	var check Check
 	resp, err := s.client.Patch(ctx, path, opt, &check)
 	if err != nil {
@@ -83,7 +84,7 @@ func (s *ChecksService) UpdateCheck(ctx context.Context, repoPath, commitSHA, ch
 
 // ListChecks lists checks for a commit
 func (s *ChecksService) ListChecks(ctx context.Context, repoPath, commitSHA string, opt *ListChecksOptions) ([]*Check, *Response, error) {
-	path := fmt.Sprintf("repos/%s/commits/%s/checks", repoPath, commitSHA)
+	path := fmt.Sprintf("repos/%s/commits/%s/checks", url.PathEscape(repoPath), commitSHA)
 	req := s.client.client.R().SetContext(ctx)
 
 	// Add specific query parameters
@@ -94,7 +95,8 @@ func (s *ChecksService) ListChecks(ctx context.Context, repoPath, commitSHA stri
 	var checks []*Check
 	req.SetSuccessResult(&checks)
 
-	resp, err := req.Get(path)
+	fullURL := s.client.buildFullURL(path)
+	resp, err := req.Get(fullURL)
 	if err != nil {
 		return nil, &Response{Response: resp}, err
 	}
@@ -112,7 +114,7 @@ func (s *ChecksService) ListChecks(ctx context.Context, repoPath, commitSHA stri
 
 // GetCheck retrieves a specific check
 func (s *ChecksService) GetCheck(ctx context.Context, repoPath, commitSHA, checkIdentifier string) (*Check, *Response, error) {
-	path := fmt.Sprintf("repos/%s/commits/%s/checks/%s", repoPath, commitSHA, checkIdentifier)
+	path := fmt.Sprintf("repos/%s/commits/%s/checks/%s", url.PathEscape(repoPath), url.PathEscape(commitSHA), url.PathEscape(checkIdentifier))
 	var check Check
 	resp, err := s.client.Get(ctx, path, &check)
 	if err != nil {
@@ -153,7 +155,7 @@ type UpdateTemplateOptions struct {
 
 // CreateTemplate creates a new template
 func (s *TemplatesService) CreateTemplate(ctx context.Context, spaceRef string, opt *CreateTemplateOptions) (*Template, *Response, error) {
-	path := fmt.Sprintf("spaces/%s/templates", spaceRef)
+	path := fmt.Sprintf("spaces/%s/templates", url.PathEscape(spaceRef))
 	var template Template
 	resp, err := s.client.Post(ctx, path, opt, &template)
 	if err != nil {
@@ -164,7 +166,7 @@ func (s *TemplatesService) CreateTemplate(ctx context.Context, spaceRef string, 
 
 // ListTemplates lists templates in a space
 func (s *TemplatesService) ListTemplates(ctx context.Context, spaceRef string, opt *ListOptions) ([]*Template, *Response, error) {
-	path := fmt.Sprintf("spaces/%s/templates", spaceRef)
+	path := fmt.Sprintf("spaces/%s/templates", url.PathEscape(spaceRef))
 	var templates []*Template
 	resp, err := s.client.performListRequest(ctx, path, opt, &templates)
 	if err != nil {
@@ -175,7 +177,7 @@ func (s *TemplatesService) ListTemplates(ctx context.Context, spaceRef string, o
 
 // GetTemplate retrieves a specific template
 func (s *TemplatesService) GetTemplate(ctx context.Context, spaceRef, templateIdentifier string) (*Template, *Response, error) {
-	path := fmt.Sprintf("spaces/%s/templates/%s", spaceRef, templateIdentifier)
+	path := fmt.Sprintf("spaces/%s/templates/%s", url.PathEscape(spaceRef), templateIdentifier)
 	var template Template
 	resp, err := s.client.Get(ctx, path, &template)
 	if err != nil {
@@ -186,7 +188,7 @@ func (s *TemplatesService) GetTemplate(ctx context.Context, spaceRef, templateId
 
 // UpdateTemplate updates a template
 func (s *TemplatesService) UpdateTemplate(ctx context.Context, spaceRef, templateIdentifier string, opt *UpdateTemplateOptions) (*Template, *Response, error) {
-	path := fmt.Sprintf("spaces/%s/templates/%s", spaceRef, templateIdentifier)
+	path := fmt.Sprintf("spaces/%s/templates/%s", url.PathEscape(spaceRef), templateIdentifier)
 	var template Template
 	resp, err := s.client.Patch(ctx, path, opt, &template)
 	if err != nil {
@@ -197,7 +199,7 @@ func (s *TemplatesService) UpdateTemplate(ctx context.Context, spaceRef, templat
 
 // DeleteTemplate deletes a template
 func (s *TemplatesService) DeleteTemplate(ctx context.Context, spaceRef, templateIdentifier string) (*Response, error) {
-	path := fmt.Sprintf("spaces/%s/templates/%s", spaceRef, templateIdentifier)
+	path := fmt.Sprintf("spaces/%s/templates/%s", url.PathEscape(spaceRef), templateIdentifier)
 	resp, err := s.client.Delete(ctx, path, nil)
 	return resp, err
 }
